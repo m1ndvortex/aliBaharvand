@@ -1,0 +1,646 @@
+/* Responsive Design - Mobile First Approach */
+
+/* Base styles are mobile-first (already defined in main.css and components.css) */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .login-card {
+    padding: var(--spacing-xxl) var(--spacing-xl);
+    max-width: 500px;
+  }
+  
+  .platform-logo {
+    font-size: 2.4rem;
+  }
+  
+  .platform-logo i {
+    font-size: 2.9rem;
+  }
+  
+  .discord-login-btn {
+    font-size: 1.3rem;
+    padding: var(--spacing-xl) var(--spacing-xxl);
+  }
+  
+  .login-features {
+    margin: var(--spacing-xxl) 0;
+  }
+  
+  .feature-item {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile-specific login page adjustments */
+@media (max-width: 575px) {
+  .login-page {
+    padding: var(--spacing-sm);
+  }
+  
+  .login-card {
+    padding: var(--spacing-xl) var(--spacing-lg);
+    border-radius: var(--radius-lg);
+  }
+  
+  .platform-logo {
+    font-size: 1.8rem;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .platform-logo i {
+    font-size: 2.2rem;
+  }
+  
+  .platform-tagline {
+    font-size: 0.9rem;
+  }
+  
+  .discord-login-btn {
+    font-size: 1.1rem;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .login-features {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+  }
+  
+  .feature-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+  
+  .feature-item i {
+    margin-bottom: 0;
+    margin-right: var(--spacing-sm);
+  }
+  
+  /* Reduce particle effects on mobile for performance */
+  .particle {
+    display: none;
+  }
+  
+  .particle:nth-child(1),
+  .particle:nth-child(3) {
+    display: block;
+  }
+}
+
+/* Tablet-specific login adjustments */
+@media (min-width: 768px) and (max-width: 991px) {
+  .login-container {
+    max-width: 550px;
+  }
+  
+  .login-card {
+    padding: var(--spacing-xxl);
+  }
+  
+  .platform-logo {
+    font-size: 2.6rem;
+  }
+  
+  .platform-logo i {
+    font-size: 3.1rem;
+  }
+  
+  .discord-login-btn {
+    font-size: 1.4rem;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (max-width: 768px) {
+  /* Dashboard Layout Adjustments */
+  .dashboard-page {
+    grid-template-areas: 
+      "header"
+      "main";
+    grid-template-columns: 1fr;
+    grid-template-rows: 70px 1fr;
+  }
+  
+  /* Header Mobile Adjustments */
+  .sidebar-toggle {
+    display: block;
+  }
+  
+  .logo span {
+    display: none;
+  }
+  
+  .wallet-summary {
+    display: none;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .user-profile {
+    padding: var(--spacing-xs);
+  }
+  
+  /* Wallet Balance Cards Mobile Adjustments */
+  .balance-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .balance-card {
+    padding: var(--spacing-lg);
+    gap: var(--spacing-md);
+  }
+  
+  .balance-card .card-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+  
+  .balance-card .card-content .balance {
+    font-size: 1.6rem;
+  }
+  
+  .balance-card .card-actions {
+    position: static;
+    opacity: 1;
+    transform: none;
+    flex-direction: row;
+    gap: var(--spacing-xs);
+  }
+  
+  .balance-card:hover {
+    transform: none;
+  }
+  
+  /* Quick Actions Mobile */
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .action-buttons .btn {
+    padding: var(--spacing-md);
+    font-size: 0.95rem;
+  }
+  
+  /* Exchange Rates Mobile */
+  .rates-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .rate-item {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .rate-item:last-child {
+    border-bottom: none;
+  }
+  
+  /* Sidebar Mobile Behavior */
+  .sidebar {
+    position: fixed;
+    top: 70px;
+    left: -250px;
+    width: 250px;
+    height: calc(100vh - 70px);
+    z-index: var(--z-fixed);
+    transition: left var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  /* Main content full width on mobile */
+  .main-content {
+    grid-area: main;
+    padding: var(--spacing-md);
+  }
+  
+  /* Card adjustments for mobile */
+  .card {
+    padding: var(--spacing-md);
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Button adjustments */
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Form adjustments */
+  .form-row {
+    flex-direction: column;
+  }
+  
+  /* Modal adjustments */
+  .modal {
+    margin: var(--spacing-sm);
+    max-width: calc(100% - var(--spacing-md));
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--spacing-md);
+  }
+  
+  /* Table responsive */
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .table {
+    min-width: 600px;
+  }
+}
+
+/* Tablet-specific wallet adjustments */
+@media (min-width: 769px) and (max-width: 991px) {
+  .balance-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+  
+  .balance-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .balance-card .card-content .balance {
+    font-size: 1.8rem;
+  }
+  
+  .action-buttons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .rates-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .dashboard-page {
+    grid-template-columns: 280px 1fr;
+  }
+  
+  .main-content {
+    padding: var(--spacing-xl);
+  }
+  
+  .page-content {
+    max-width: 1400px;
+  }
+  
+  /* Enhanced wallet summary on larger screens */
+  .wallet-summary {
+    gap: var(--spacing-lg);
+  }
+  
+  .wallet-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+  
+  /* Desktop wallet balance cards */
+  .balance-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xl);
+  }
+  
+  .balance-card {
+    padding: var(--spacing-xl);
+    gap: var(--spacing-lg);
+  }
+  
+  .balance-card .card-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+  
+  .balance-card .card-content .balance {
+    font-size: 2.2rem;
+  }
+  
+  .balance-card .card-actions {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  
+  .balance-card:hover .card-actions {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  /* Desktop quick actions */
+  .action-buttons {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+  }
+  
+  .action-buttons .btn {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: 1.1rem;
+  }
+  
+  /* Desktop exchange rates */
+  .rates-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Larger cards on desktop */
+  .card {
+    padding: var(--spacing-xl);
+  }
+  
+  /* Multi-column layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+  
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+  }
+  
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .dashboard-page {
+    grid-template-columns: 300px 1fr;
+  }
+  
+  .main-content {
+    padding: var(--spacing-xxl);
+  }
+  
+  .page-content {
+    max-width: 1600px;
+  }
+  
+  /* Enhanced typography on larger screens */
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.5rem; }
+  h3 { font-size: 2rem; }
+  
+  /* Larger buttons on desktop */
+  .btn-lg {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: 1.2rem;
+  }
+}
+
+/* Ultra-wide screens (1400px and up) */
+@media (min-width: 1400px) {
+  .page-content {
+    max-width: 1800px;
+  }
+  
+  .grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-lg);
+  }
+  
+  .grid-6 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .btn {
+    min-height: 44px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .nav-link {
+    min-height: 48px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .form-input {
+    min-height: 44px;
+    padding: var(--spacing-md);
+  }
+  
+  /* Remove hover effects on touch devices */
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  .nav-link:hover {
+    background: transparent;
+  }
+  
+  /* Enhanced focus styles for touch */
+  *:focus {
+    outline: 3px solid var(--discord-blue);
+    outline-offset: 2px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #666666;
+    --border-light: #888888;
+    --text-secondary: #cccccc;
+  }
+  
+  .card {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-slide-down {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar,
+  .main-header,
+  .btn,
+  .modal-backdrop {
+    display: none !important;
+  }
+  
+  .main-content {
+    grid-area: auto;
+    padding: 0;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Specific breakpoint utilities */
+.mobile-only {
+  display: block;
+}
+
+.tablet-up {
+  display: none;
+}
+
+.desktop-up {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .tablet-up {
+    display: block;
+  }
+}
+
+@media (min-width: 992px) {
+  .desktop-up {
+    display: block;
+  }
+}
+
+/* Flexbox utilities for responsive design */
+.flex-column-mobile {
+  flex-direction: column;
+}
+
+.flex-row-tablet {
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .flex-row-tablet {
+    flex-direction: row;
+  }
+}
+
+.flex-row-desktop {
+  flex-direction: column;
+}
+
+@media (min-width: 992px) {
+  .flex-row-desktop {
+    flex-direction: row;
+  }
+}
+
+/* Grid utilities for responsive design */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 576px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .grid-responsive {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Spacing utilities for different screen sizes */
+@media (max-width: 767px) {
+  .p-mobile-sm { padding: var(--spacing-sm) !important; }
+  .p-mobile-md { padding: var(--spacing-md) !important; }
+  .m-mobile-sm { margin: var(--spacing-sm) !important; }
+  .m-mobile-md { margin: var(--spacing-md) !important; }
+}
+
+@media (min-width: 768px) {
+  .p-tablet-lg { padding: var(--spacing-lg) !important; }
+  .p-tablet-xl { padding: var(--spacing-xl) !important; }
+  .m-tablet-lg { margin: var(--spacing-lg) !important; }
+  .m-tablet-xl { margin: var(--spacing-xl) !important; }
+}
+
+@media (min-width: 992px) {
+  .p-desktop-xl { padding: var(--spacing-xl) !important; }
+  .p-desktop-xxl { padding: var(--spacing-xxl) !important; }
+  .m-desktop-xl { margin: var(--spacing-xl) !important; }
+  .m-desktop-xxl { margin: var(--spacing-xxl) !important; }
+}

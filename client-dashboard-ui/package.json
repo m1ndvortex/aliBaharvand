@@ -1,0 +1,13 @@
+{
+  "name": "gaming-dashboard",
+  "version": "1.0.0",
+  "description": "Gaming Services Marketplace Dashboard",
+  "scripts": {
+    "dev": "live-server --port=8080 --host=0.0.0.0 --entry-file=index.html",
+    "build": "echo 'No build process needed for static files'",
+    "start": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

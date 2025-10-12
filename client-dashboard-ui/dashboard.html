@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Services Marketplace - Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="dashboard-page">
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <span>Gaming Services</span>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <div class="wallet-summary">
+                <div class="wallet-item">
+                    <i class="fas fa-coins text-gold"></i>
+                    <span id="headerGoldBalance">1,500.50 G</span>
+                </div>
+                <div class="wallet-item">
+                    <i class="fas fa-dollar-sign text-usd"></i>
+                    <span id="headerUsdBalance">$250.00</span>
+                </div>
+                <div class="wallet-item">
+                    <i class="fas fa-money-bill text-toman"></i>
+                    <span id="headerTomanBalance">5,000,000﷼</span>
+                </div>
+            </div>
+            
+            <div class="notifications">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+            
+            <div class="user-profile">
+                <img src="assets/images/default-avatar.png" alt="User Avatar" class="user-avatar" id="userAvatar">
+                <div class="user-info">
+                    <span class="username" id="username">GamerPro#1234</span>
+                    <span class="user-role">Client</span>
+                </div>
+                <button class="profile-dropdown-btn">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <ul class="nav-list">
+                <li class="nav-item active">
+                    <a href="#dashboard" class="nav-link" data-page="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#marketplace" class="nav-link" data-page="marketplace">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Marketplace</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#orders" class="nav-link" data-page="orders">
+                        <i class="fas fa-box"></i>
+                        <span>My Orders</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#wallet" class="nav-link" data-page="wallet">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#shop" class="nav-link" data-page="shop">
+                        <i class="fas fa-store"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#profile" class="nav-link" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#support" class="nav-link" data-page="support">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Content will be dynamically loaded here -->
+        <div class="page-content" id="pageContent">
+            <!-- Dashboard content placeholder -->
+            <div class="dashboard-home">
+                <h1>Welcome to Your Dashboard</h1>
+                <p>Content will be loaded dynamically based on navigation.</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- JavaScript -->
+    <script src="js/data.js"></script>
+    <script src="js/wallet.js"></script>
+    <script src="js/marketplace.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
