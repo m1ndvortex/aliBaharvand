@@ -1,0 +1,463 @@
+/* Responsive Design System */
+
+/* Mobile First Approach - Base styles are for mobile */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .content-area {
+        padding: var(--spacing-lg) var(--spacing-xl);
+    }
+    
+    .grid-cols-sm-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-cols-sm-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .dashboard-header {
+        padding: 0 var(--spacing-xl);
+    }
+    
+    .role-tab .tab-text {
+        display: inline;
+    }
+    
+    .workspace-switcher {
+        display: flex;
+    }
+    
+    .grid-cols-md-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-cols-md-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-cols-md-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .modal-container {
+        max-width: 600px;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .content-area {
+        padding: var(--spacing-xl) var(--spacing-xxl);
+    }
+    
+    .grid-cols-lg-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-cols-lg-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-cols-lg-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .grid-cols-lg-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    .modal-container {
+        max-width: 800px;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .content-area {
+        max-width: 1400px;
+    }
+    
+    .grid-cols-xl-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-cols-xl-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-cols-xl-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .grid-cols-xl-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    .grid-cols-xl-6 {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* Mobile-specific styles (up to 767px) */
+@media (max-width: 767px) {
+    :root {
+        --sidebar-width: 100%;
+        --header-height: 120px; /* Increased for stacked layout */
+    }
+    
+    /* Header adjustments for mobile */
+    .dashboard-header {
+        flex-direction: column;
+        height: auto;
+        min-height: var(--header-height);
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+    }
+    
+    .role-tabs {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .role-tab {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+    
+    .role-tab .tab-text {
+        display: none; /* Hide text on very small screens */
+    }
+    
+    .workspace-switcher {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .workspace-btn {
+        flex: 1;
+        text-align: center;
+    }
+    
+    /* Sidebar becomes full-width overlay on mobile */
+    .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        width: 100%;
+        height: calc(100vh - var(--header-height));
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+        border-right: none;
+        border-top: 1px solid var(--border-primary);
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    /* Main content adjustments */
+    .main-content {
+        width: 100%;
+        height: calc(100vh - var(--header-height));
+    }
+    
+    .content-area {
+        padding: var(--spacing-md);
+    }
+    
+    /* Mobile navigation toggle */
+    .mobile-nav-toggle {
+        display: block;
+        position: fixed;
+        top: calc(var(--header-height) + var(--spacing-md));
+        left: var(--spacing-md);
+        z-index: 300;
+        background-color: var(--discord-blurple);
+        color: var(--text-primary);
+        border: none;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm);
+        box-shadow: var(--shadow-lg);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .mobile-nav-toggle:hover {
+        background-color: #4752c4;
+    }
+    
+    /* Modal adjustments for mobile */
+    .modal-container {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: var(--spacing-md);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: var(--spacing-md);
+    }
+    
+    /* Table responsive behavior */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .table {
+        min-width: 600px;
+    }
+    
+    /* Card grid adjustments */
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Form adjustments */
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+    
+    /* Notification adjustments */
+    .notification-container {
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        left: var(--spacing-sm);
+        max-width: none;
+    }
+    
+    .notification {
+        margin-bottom: var(--spacing-sm);
+    }
+}
+
+/* Tablet-specific styles (768px to 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .role-tab .tab-text {
+        display: inline;
+    }
+    
+    .sidebar {
+        width: 200px;
+    }
+    
+    .content-area {
+        padding: var(--spacing-lg);
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop and larger screens */
+@media (min-width: 992px) {
+    .mobile-nav-toggle {
+        display: none;
+    }
+    
+    .sidebar {
+        position: sticky;
+        transform: none;
+    }
+    
+    .role-tab .tab-text {
+        display: inline;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Adjust for high DPI displays */
+    .loading-spinner {
+        border-width: 1px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 600px) {
+    .dashboard-header {
+        height: 50px;
+        min-height: 50px;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .role-tabs {
+        gap: var(--spacing-xs);
+    }
+    
+    .role-tab {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .workspace-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .main-content {
+        height: calc(100vh - 50px);
+    }
+    
+    .sidebar {
+        height: calc(100vh - 50px);
+        top: 50px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .dashboard-header,
+    .sidebar,
+    .modal-overlay,
+    .notification-container,
+    .mobile-nav-toggle {
+        display: none !important;
+    }
+    
+    .main-content {
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .content-area {
+        padding: 0 !important;
+        max-width: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    
+    .table {
+        border-collapse: collapse !important;
+    }
+    
+    .table th,
+    .table td {
+        border: 1px solid #000 !important;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .loading-spinner {
+        animation: none;
+        border-top-color: var(--discord-blurple);
+    }
+    
+    .loading-skeleton {
+        animation: none;
+        background: var(--bg-secondary);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    :root {
+        --border-primary: #ffffff;
+        --border-secondary: #ffffff;
+        --text-secondary: #ffffff;
+        --bg-hover: rgba(255, 255, 255, 0.1);
+        --bg-active: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Dark mode preference (already default, but explicit) */
+@media (prefers-color-scheme: dark) {
+    /* Our default theme is already dark, so no changes needed */
+}
+
+/* Light mode preference override (if needed in future) */
+@media (prefers-color-scheme: light) {
+    /* Keep dark theme as per Discord inspiration */
+    /* This could be expanded if light theme is ever needed */
+}
+
+/* Focus visible for keyboard navigation */
+@media (prefers-reduced-motion: no-preference) {
+    :focus-visible {
+        outline: 2px solid var(--discord-blurple);
+        outline-offset: 2px;
+    }
+}
+
+/* Utility classes for responsive display */
+.mobile-only {
+    display: block;
+}
+
+.desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none;
+    }
+    
+    .desktop-only {
+        display: block;
+    }
+}
+
+/* Responsive text sizes */
+@media (max-width: 767px) {
+    .responsive-text-sm {
+        font-size: var(--font-size-xs);
+    }
+    
+    .responsive-text-md {
+        font-size: var(--font-size-sm);
+    }
+    
+    .responsive-text-lg {
+        font-size: var(--font-size-md);
+    }
+}
+
+/* Responsive spacing */
+@media (max-width: 767px) {
+    .responsive-p-sm {
+        padding: var(--spacing-sm);
+    }
+    
+    .responsive-p-md {
+        padding: var(--spacing-md);
+    }
+    
+    .responsive-m-sm {
+        margin: var(--spacing-sm);
+    }
+    
+    .responsive-m-md {
+        margin: var(--spacing-md);
+    }
+}

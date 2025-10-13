@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Provider Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header with role tabs and workspace switcher -->
+        <header class="dashboard-header" role="banner">
+            <div class="role-tabs" role="tablist" aria-label="User roles">
+                <button class="role-tab active" data-role="advertiser" role="tab" aria-selected="true" tabindex="0">
+                    <span class="tab-icon" aria-hidden="true">📊</span>
+                    <span class="tab-text">Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="team_advertiser" role="tab" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon" aria-hidden="true">👥</span>
+                    <span class="tab-text">Team Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="booster" role="tab" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon" aria-hidden="true">🎮</span>
+                    <span class="tab-text">Booster</span>
+                </button>
+            </div>
+            <div class="workspace-switcher" role="group" aria-label="Workspace switcher">
+                <button class="workspace-btn active" data-workspace="personal" aria-pressed="true">
+                    Personal Workspace
+                </button>
+                <button class="workspace-btn" data-workspace="team" aria-pressed="false">
+                    Team Workspace
+                </button>
+            </div>
+        </header>
+
+        <!-- Main dashboard content -->
+        <div class="dashboard-content">
+            <aside class="sidebar" role="complementary" aria-label="Navigation sidebar">
+                <nav class="sidebar-nav" role="menu" aria-label="Main navigation">
+                    <!-- Dynamic sidebar content will be populated by JavaScript -->
+                </nav>
+            </aside>
+            
+            <main class="main-content" role="main" aria-live="polite">
+                <div class="content-area">
+                    <!-- Dynamic main content will be populated by JavaScript -->
+                    <div class="welcome-message">
+                        <h1>Welcome to Service Provider Dashboard</h1>
+                        <p>Select a tab and sidebar item to get started.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal overlay for various modals -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container" id="modalContainer">
+            <!-- Dynamic modal content will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Notification container -->
+    <div class="notification-container" id="notificationContainer">
+        <!-- Notifications will be dynamically added here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
