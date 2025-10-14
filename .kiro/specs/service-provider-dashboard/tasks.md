@@ -109,6 +109,7 @@
 
 
 
+
     - Create earnings overview with multi-currency display (Gold, USD, Toman)
     - Implement earnings history with filtering by date range and service type
     - Build earnings analytics with charts and performance metrics
@@ -117,8 +118,13 @@
     - _Requirements: 12.1, 12.2, 12.3, 12.5_
 
 - [ ] 5. Implement Team Advertiser functionality
-  - [ ] 5.1 Create team management system
-    - Build team creation modal with form validation and team setup
+  - [x] 5.1 Create team management system
+
+
+
+
+
+    - Build team testcreation modal with form validation and team setup
     - Implement team information display and editing capabilities
     - Create team member invitation system with email/username input
     - Build team member management with role assignment and removal capabilities
@@ -126,6 +132,7 @@
     - _Requirements: 4.1, 4.6_
 
   - [ ] 5.2 Build workspace switching functionality
+
     - Create workspace switcher component with clear visual indicators
     - Implement workspace context switching with proper state management
     - Build workspace-specific service filtering and display

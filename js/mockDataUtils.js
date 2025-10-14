@@ -945,6 +945,174 @@ class MockDataManager {
     }
   }
 
+  async updateTeam(teamId, teamData) {
+    await this.simulateApiDelay();
+    
+    try {
+      const teams = JSON.parse(localStorage.getItem('mockData_teams') || '[]');
+      const teamIndex = teams.findIndex(team => team.id === teamId);
+      
+      if (teamIndex === -1) {
+        throw new Error(`Team with id '${teamId}' not found`);
+      }
+      
+      // Update team data
+      teams[teamIndex] = {
+        ...teams[teamIndex],
+        ...teamData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('mockData_teams', JSON.stringify(teams));
+      
+      // Log update activity
+      await this.addTeamActivityLog(
+        teamId,
+        teamData.leaderId || teams[teamIndex].leaderId,
+        'team_updated',
+        { changes: Object.keys(teamData) }
+      );
+      
+      return {
+        success: true,
+        data: teams[teamIndex],
+        message: 'Team updated successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to update team'
+      };
+    }
+  }
+
+  async removeTeamMember(teamId, userId) {
+    await this.simulateApiDelay();
+    
+    try {
+      const teams = JSON.parse(localStorage.getItem('mockData_teams') || '[]');
+      const teamIndex = teams.findIndex(team => team.id === teamId);
+      
+      if (teamIndex === -1) {
+        throw new Error(`Team with id '${teamId}' not found`);
+      }
+      
+      const team = teams[teamIndex];
+      const memberIndex = team.members.findIndex(member => member.userId === userId);
+      
+      if (memberIndex === -1) {
+        throw new Error('Member not found in team');
+      }
+      
+      const removedMember = team.members[memberIndex];
+      
+      // Don't allow removing the team leader
+      if (removedMember.role === 'leader') {
+        throw new Error('Cannot remove team leader');
+      }
+      
+      // Remove member
+      team.members.splice(memberIndex, 1);
+      team.stats.totalMembers = team.members.length;
+      team.stats.activeMembers = team.members.filter(m => m.status === 'active').length;
+      team.updatedAt = new Date().toISOString();
+      
+      localStorage.setItem('mockData_teams', JSON.stringify(teams));
+      
+      // Log removal activity
+      await this.addTeamActivityLog(
+        teamId,
+        team.leaderId,
+        'member_removed',
+        { removedUser: removedMember.userId || removedMember.email }
+      );
+      
+      return {
+        success: true,
+        data: team,
+        message: 'Team member removed successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to remove team member'
+      };
+    }
+  }
+
+  async updateTeamMemberRole(teamId, userId, newRole) {
+    await this.simulateApiDelay();
+    
+    try {
+      const teams = JSON.parse(localStorage.getItem('mockData_teams') || '[]');
+      const teamIndex = teams.findIndex(team => team.id === teamId);
+      
+      if (teamIndex === -1) {
+        throw new Error(`Team with id '${teamId}' not found`);
+      }
+      
+      const team = teams[teamIndex];
+      const memberIndex = team.members.findIndex(member => member.userId === userId);
+      
+      if (memberIndex === -1) {
+        throw new Error('Member not found in team');
+      }
+      
+      const member = team.members[memberIndex];
+      const oldRole = member.role;
+      
+      // Don't allow changing leader role
+      if (member.role === 'leader' || newRole === 'leader') {
+        throw new Error('Cannot change leader role');
+      }
+      
+      // Update member role
+      member.role = newRole;
+      member.updatedAt = new Date().toISOString();
+      
+      // Update permissions based on role
+      switch (newRole) {
+        case 'moderator':
+          member.permissions = ['create_services', 'manage_orders', 'view_analytics'];
+          break;
+        case 'member':
+          member.permissions = ['create_services'];
+          break;
+        default:
+          member.permissions = ['create_services'];
+      }
+      
+      team.updatedAt = new Date().toISOString();
+      localStorage.setItem('mockData_teams', JSON.stringify(teams));
+      
+      // Log role change activity
+      await this.addTeamActivityLog(
+        teamId,
+        team.leaderId,
+        'member_role_changed',
+        { 
+          userId: userId,
+          oldRole: oldRole,
+          newRole: newRole
+        }
+      );
+      
+      return {
+        success: true,
+        data: member,
+        message: 'Member role updated successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Failed to update member role'
+      };
+    }
+  }
+
   // Wallet-related methods with API simulation
   async getWallet(userId) {
     await this.simulateApiDelay();

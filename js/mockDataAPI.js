@@ -235,6 +235,33 @@ class MockDataAPI {
     }
   }
 
+  async updateTeam(teamId, teamData) {
+    try {
+      const result = await this.manager.updateTeam(teamId, teamData);
+      return this.createResponse(result.success, result.data, result.message, result.error);
+    } catch (error) {
+      return this.createResponse(false, null, 'Failed to update team', error.message, 500);
+    }
+  }
+
+  async removeTeamMember(teamId, userId) {
+    try {
+      const result = await this.manager.removeTeamMember(teamId, userId);
+      return this.createResponse(result.success, result.data, result.message, result.error);
+    } catch (error) {
+      return this.createResponse(false, null, 'Failed to remove team member', error.message, 500);
+    }
+  }
+
+  async updateTeamMemberRole(teamId, userId, newRole) {
+    try {
+      const result = await this.manager.updateTeamMemberRole(teamId, userId, newRole);
+      return this.createResponse(result.success, result.data, result.message, result.error);
+    } catch (error) {
+      return this.createResponse(false, null, 'Failed to update member role', error.message, 500);
+    }
+  }
+
   async getTeamActivityLogs(teamId, limit = 50) {
     try {
       const result = await this.manager.getTeamActivityLogs(teamId, limit);

@@ -96,6 +96,9 @@ class DashboardApp {
             // Create mobile navigation toggle
             this.createMobileNavToggle();
             
+            // Initialize managers
+            await this.initializeManagers();
+            
             // Mark as initialized
             this.initialized = true;
             
@@ -731,6 +734,11 @@ class DashboardApp {
             return this.createEarningsView();
         }
         
+        // Handle team management view with actual implementation
+        if (item === 'team' && role === 'team_advertiser') {
+            return this.createTeamManagementView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -1090,6 +1098,55 @@ class DashboardApp {
      */
     showLoading(component = 'global') {
         AppState.setLoading(component, true);
+    }
+
+    /**
+     * Initialize managers
+     */
+    async initializeManagers() {
+        try {
+            // Initialize TeamManager if available
+            if (typeof TeamManager !== 'undefined' && TeamManager.init) {
+                await TeamManager.init();
+            }
+        } catch (error) {
+            console.warn('Failed to initialize some managers:', error);
+        }
+    }
+
+    /**
+     * Create team management view
+     */
+    createTeamManagementView() {
+        const container = Utils.DOM.create('div', {
+            className: 'team-management-view'
+        });
+
+        // Initialize TeamManager if not already done
+        if (typeof TeamManager !== 'undefined' && TeamManager.renderTeamManagement) {
+            // TeamManager will render directly to content area
+            setTimeout(() => {
+                TeamManager.renderTeamManagement();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Team Management',
+                content: '<div class="loading-spinner"></div><p>Loading team management...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if TeamManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Team Management',
+                content: '<p>Team management is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
     }
 
     /**
