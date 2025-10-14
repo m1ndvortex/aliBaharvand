@@ -6213,3 +6213,1075 @@ eam Analytics Dashboard */
         min-width: auto;
     }
 }
+/* Booste
+r Earnings Dashboard Styles */
+.booster-earnings-dashboard {
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.booster-earnings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xl);
+}
+
+.header-title-section h1.earnings-title {
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.header-title-section .earnings-subtitle {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: var(--font-size-md);
+}
+
+.earnings-quick-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* Booster Earnings Overview */
+.booster-earnings-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.earnings-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-normal);
+}
+
+.earnings-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.earnings-card.gold {
+    border-left: 4px solid #FFD700;
+}
+
+.earnings-card.usd {
+    border-left: 4px solid #00D26A;
+}
+
+.earnings-card.toman {
+    border-left: 4px solid #7289DA;
+}
+
+.earnings-card-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.earnings-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.earnings-info {
+    flex: 1;
+}
+
+.earnings-amount {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.earnings-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.earnings-trend {
+    text-align: right;
+}
+
+.trend-indicator {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-xs);
+}
+
+.trend-indicator.positive {
+    color: var(--success-color);
+}
+
+.trend-indicator.negative {
+    color: var(--error-color);
+}
+
+.trend-indicator.neutral {
+    color: var(--text-secondary);
+}
+
+.trend-period {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.earnings-count {
+    text-align: center;
+}
+
+.count-number {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.count-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Performance Metrics */
+.booster-performance-metrics .performance-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.metric-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+}
+
+.metric-icon {
+    font-size: 1.25rem;
+}
+
+.metric-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.metric-trend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.metric-description {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+/* Main Grid Layout */
+.booster-earnings-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+@media (max-width: 1200px) {
+    .booster-earnings-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Earnings History */
+.earnings-history-filters {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.earnings-history-filters .form-group {
+    min-width: 150px;
+}
+
+/* Projections */
+.projections-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.monthly-goal-section {
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.goal-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.goal-amount {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.goal-progress-bar {
+    height: 8px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--discord-blurple));
+    transition: width var(--transition-normal);
+}
+
+.goal-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+}
+
+.goal-percentage {
+    color: var(--success-color);
+    font-weight: var(--font-weight-medium);
+}
+
+.goal-remaining {
+    color: var(--text-secondary);
+}
+
+.projections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.projection-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+}
+
+.projection-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.projection-value {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.projection-confidence {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+/* Pending Earnings */
+.pending-earnings-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.pending-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.pending-total, .pending-count {
+    text-align: center;
+}
+
+.pending-amount, .pending-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pending-label, .pending-text {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.pending-earnings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.pending-earning-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+}
+
+.pending-item-info {
+    flex: 1;
+}
+
+.pending-service {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pending-order {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pending-submitted {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.pending-item-amount {
+    text-align: right;
+}
+
+.pending-amount {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.no-pending-earnings .empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.no-pending-earnings .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.no-pending-earnings h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.no-pending-earnings p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Completion Rate Tracking */
+.completion-tracking-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.overall-completion-rate {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.rate-display {
+    margin-bottom: var(--spacing-lg);
+}
+
+.rate-percentage {
+    font-size: 3rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--success-color);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+.rate-label {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+}
+
+.rate-breakdown {
+    display: flex;
+    justify-content: space-around;
+    gap: var(--spacing-md);
+}
+
+.rate-stat {
+    text-align: center;
+}
+
+.rate-stat .stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.rate-stat .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.service-completion-breakdown {
+    margin-top: var(--spacing-lg);
+}
+
+.breakdown-title {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.service-completion-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.service-completion-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-primary);
+}
+
+.service-info {
+    flex: 1;
+}
+
+.service-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+.service-stats {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.service-rate {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-width: 120px;
+}
+
+.rate-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.rate-fill {
+    height: 100%;
+    background: var(--success-color);
+    transition: width var(--transition-normal);
+}
+
+.rate-percentage {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    min-width: 35px;
+}
+
+/* Booster Profile Styles */
+.booster-profile-dashboard {
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.booster-profile-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-xl);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-primary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.profile-avatar-section {
+    position: relative;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--discord-blurple);
+}
+
+.profile-status {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid var(--bg-secondary);
+}
+
+.profile-status.online {
+    background-color: var(--success-color);
+}
+
+.profile-info-section {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.profile-title {
+    font-size: var(--font-size-lg);
+    color: var(--discord-blurple);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-md);
+}
+
+.profile-stats-quick {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.quick-stat {
+    text-align: center;
+}
+
+.quick-stat .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.quick-stat .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.profile-member-since {
+    font-size: var(--font-size-sm);
+    color: var(--text-tertiary);
+}
+
+/* Profile Stats Overview */
+.profile-stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.profile-stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-normal);
+}
+
+.profile-stat-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.stat-card-content .stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-card-content .stat-info {
+    flex: 1;
+}
+
+.stat-card-content .stat-value {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-card-content .stat-title {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.stat-card-content .stat-trend {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--success-color);
+}
+
+/* Profile Main Grid */
+.booster-profile-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+}
+
+@media (max-width: 1200px) {
+    .booster-profile-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Achievements */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.achievement-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    transition: all var(--transition-normal);
+}
+
+.achievement-item.earned {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(0, 210, 106, 0.1) 100%);
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-title {
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-md);
+}
+
+.achievement-description {
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-sm);
+}
+
+.achievement-progress {
+    margin-bottom: var(--spacing-sm);
+}
+
+.achievement-progress .progress-bar {
+    height: 6px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: var(--spacing-xs);
+}
+
+.achievement-progress .progress-fill {
+    height: 100%;
+    background: var(--discord-blurple);
+    transition: width var(--transition-normal);
+}
+
+.achievement-progress .progress-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.achievement-earned {
+    font-size: var(--font-size-xs);
+    color: var(--success-color);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Specializations */
+.specializations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.specialization-item {
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.spec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.spec-name {
+    color: var(--text-primary);
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.spec-level {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.spec-level.expert {
+    background: var(--success-color);
+    color: white;
+}
+
+.spec-level.advanced {
+    background: var(--discord-blurple);
+    color: white;
+}
+
+.spec-level.intermediate {
+    background: var(--warning-color);
+    color: white;
+}
+
+.spec-stats {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.spec-stat {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.spec-stat .stat-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.spec-stat .stat-value {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.spec-notes {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+/* Performance History Chart */
+.performance-history-chart {
+    display: flex;
+    align-items: end;
+    gap: var(--spacing-md);
+    height: 200px;
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.month-performance {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.month-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.performance-bars {
+    display: flex;
+    gap: 2px;
+    align-items: end;
+    height: 120px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.performance-bar {
+    width: 8px;
+    border-radius: var(--radius-xs);
+    min-height: 4px;
+    transition: height var(--transition-normal);
+}
+
+.performance-bar.completion-rate {
+    background: var(--success-color);
+}
+
+.performance-bar.orders {
+    background: var(--discord-blurple);
+}
+
+.performance-bar.rating {
+    background: var(--warning-color);
+}
+
+.month-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.month-stat {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-xs);
+}
+
+.legend-color.completion-rate {
+    background: var(--success-color);
+}
+
+.legend-color.orders {
+    background: var(--discord-blurple);
+}
+
+.legend-color.rating {
+    background: var(--warning-color);
+}
+
+/* Reviews */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.review-item {
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.review-rating {
+    font-size: var(--font-size-lg);
+}
+
+.review-date {
+    font-size: var(--font-size-sm);
+    color: var(--text-tertiary);
+}
+
+.review-comment {
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+    font-style: italic;
+}
+
+.review-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+}
+
+.review-service {
+    color: var(--discord-blurple);
+    font-weight: var(--font-weight-medium);
+}
+
+.review-reviewer {
+    color: var(--text-secondary);
+}
+
+/* Goal Setting Modal */
+.set-goal-modal .goal-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+.goal-suggestions {
+    margin-top: var(--spacing-lg);
+}
+
+.goal-suggestions h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.suggestion-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.suggestion-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.suggestion-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--discord-blurple);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .booster-earnings-dashboard,
+    .booster-profile-dashboard {
+        padding: var(--spacing-md);
+    }
+    
+    .booster-earnings-header,
+    .booster-profile-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+    }
+    
+    .booster-earnings-overview,
+    .profile-stats-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .booster-earnings-main-grid,
+    .booster-profile-main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .earnings-history-filters {
+        flex-direction: column;
+    }
+    
+    .profile-stats-quick {
+        justify-content: center;
+    }
+    
+    .performance-history-chart {
+        height: 150px;
+        padding: var(--spacing-md);
+    }
+    
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+}

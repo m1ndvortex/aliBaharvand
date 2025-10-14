@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booster Earnings Test - Service Provider Dashboard</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="role-tabs">
+                <button class="role-tab" data-role="advertiser">📊 Advertiser</button>
+                <button class="role-tab" data-role="team_advertiser">👥 Team Advertiser</button>
+                <button class="role-tab active" data-role="booster">🎮 Booster</button>
+            </div>
+            
+            <div class="workspace-switcher">
+                <button class="workspace-btn active" data-workspace="personal">Personal Workspace</button>
+                <button class="workspace-btn" data-workspace="team">Team Workspace</button>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <div class="sidebar-item" data-id="dashboard">
+                        <span class="sidebar-icon">🏠</span>
+                        <span class="sidebar-label">Dashboard Home</span>
+                    </div>
+                    <div class="sidebar-item" data-id="orders">
+                        <span class="sidebar-icon">📋</span>
+                        <span class="sidebar-label">Assigned Orders</span>
+                    </div>
+                    <div class="sidebar-item active" data-id="earnings">
+                        <span class="sidebar-icon">💰</span>
+                        <span class="sidebar-label">My Earnings</span>
+                    </div>
+                    <div class="sidebar-item" data-id="profile">
+                        <span class="sidebar-icon">👤</span>
+                        <span class="sidebar-label">Profile</span>
+                    </div>
+                    <div class="sidebar-item" data-id="wallet">
+                        <span class="sidebar-icon">💳</span>
+                        <span class="sidebar-label">Wallet</span>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <div class="content-area">
+                    <!-- Content will be dynamically loaded here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- JavaScript Files -->
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/mockData.js"></script>
+    <script src="js/mockDataUtils.js"></script>
+    <script src="js/boosterEarningsManager.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // Initialize the application for booster earnings testing
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Initializing Booster Earnings Test...');
+            
+            // Set up initial state for booster role
+            AppState.setState({
+                'user.id': 'user_booster_test',
+                'user.discordUsername': 'TestBooster#1234',
+                'user.discordAvatarUrl': 'https://via.placeholder.com/128x128/7289DA/ffffff?text=TB',
+                'user.email': 'testbooster@example.com',
+                'user.roles': ['booster'],
+                'ui.activeRole': 'booster',
+                'ui.activeSidebarItem': 'earnings',
+                'ui.workspaceType': 'personal'
+            });
+
+            // Initialize the dashboard app
+            const app = new DashboardApp();
+            await app.init();
+
+            // Initialize and render booster earnings
+            if (typeof BoosterEarningsManager_Instance !== 'undefined') {
+                BoosterEarningsManager_Instance.init();
+                BoosterEarningsManager_Instance.renderBoosterEarnings();
+                
+                console.log('Booster earnings dashboard loaded successfully');
+                
+                // Show success notification
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Test Loaded',
+                    message: 'Booster earnings dashboard test loaded successfully',
+                    duration: 3000
+                });
+            } else {
+                console.error('BoosterEarningsManager not available');
+                
+                // Show error notification
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Load Error',
+                    message: 'Failed to load booster earnings manager',
+                    duration: 5000
+                });
+            }
+
+            // Add test navigation handlers
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const itemId = e.currentTarget.dataset.id;
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    
+                    // Handle different views
+                    if (itemId === 'earnings') {
+                        BoosterEarningsManager_Instance.renderBoosterEarnings();
+                    } else if (itemId === 'profile') {
+                        BoosterEarningsManager_Instance.renderBoosterProfile();
+                    } else {
+                        // Show placeholder for other views
+                        const contentArea = document.querySelector('.content-area');
+                        contentArea.innerHTML = `
+                            <div class="placeholder-content">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>${itemId.charAt(0).toUpperCase() + itemId.slice(1)} View</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>This is a placeholder for the ${itemId} view.</p>
+                                        <p>Click on "My Earnings" or "Profile" to test the booster earnings functionality.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            });
+        });
+
+        // Test functions for manual testing
+        window.testFunctions = {
+            // Test earnings view
+            showEarnings: () => {
+                BoosterEarningsManager_Instance.renderBoosterEarnings();
+                console.log('Showing booster earnings dashboard');
+            },
+            
+            // Test profile view
+            showProfile: () => {
+                BoosterEarningsManager_Instance.renderBoosterProfile();
+                console.log('Showing booster profile');
+            },
+            
+            // Test goal setting modal
+            showGoalModal: () => {
+                BoosterEarningsManager_Instance.showSetGoalModal();
+                console.log('Showing goal setting modal');
+            },
+            
+            // Test data export
+            exportData: () => {
+                BoosterEarningsManager_Instance.exportEarningsData();
+                console.log('Exporting earnings data');
+            },
+            
+            // Test filter application
+            applyFilters: () => {
+                BoosterEarningsManager_Instance.applyFilters();
+                console.log('Applying earnings filters');
+            }
+        };
+
+        // Make test functions available in console
+        console.log('Test functions available:');
+        console.log('- testFunctions.showEarnings()');
+        console.log('- testFunctions.showProfile()');
+        console.log('- testFunctions.showGoalModal()');
+        console.log('- testFunctions.exportData()');
+        console.log('- testFunctions.applyFilters()');
+    </script>
+</body>
+</html>

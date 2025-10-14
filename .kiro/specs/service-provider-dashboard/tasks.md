@@ -197,7 +197,12 @@
     - Create evidence resubmission capability for rejected orders
     - _Requirements: 6.3, 6.4, 6.6_
 
-  - [ ] 6.3 Build booster earnings tracking
+  - [x] 6.3 Build booster earnings tracking
+
+
+
+
+
     - Create earnings dashboard with pending and completed earnings display
     - Implement earnings history with detailed order breakdowns
     - Build completion rate tracking with performance metrics
@@ -207,6 +212,7 @@
 
 - [ ] 7. Implement comprehensive wallet system
   - [ ] 7.1 Create multi-currency wallet interface
+
     - Build wallet balance display with Gold, USD, and Toman currencies
     - Implement real-time balance updates with smooth animations
     - Create currency conversion calculator with live exchange rates

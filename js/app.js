@@ -1294,6 +1294,16 @@ class DashboardApp {
             return this.createBoosterOrdersView();
         }
         
+        // Handle booster earnings view with actual implementation
+        if (item === 'earnings' && role === 'booster') {
+            return this.createBoosterEarningsView();
+        }
+        
+        // Handle booster profile view with actual implementation
+        if (item === 'profile' && role === 'booster') {
+            return this.createBoosterProfileView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -1394,7 +1404,14 @@ class DashboardApp {
             className: 'earnings-view'
         });
 
-        // Initialize EarningsManager if not already done
+        const activeRole = AppState.getState('ui.activeRole');
+
+        // Handle booster earnings differently
+        if (activeRole === 'booster') {
+            return this.createBoosterEarningsView();
+        }
+
+        // Initialize EarningsManager for advertiser/team_advertiser roles
         if (typeof EarningsManager !== 'undefined' && EarningsManager_Instance) {
             // Initialize and render earnings
             EarningsManager_Instance.init();
@@ -1867,6 +1884,78 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Assigned Orders',
                 content: '<p>Booster orders management is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create booster earnings view
+     */
+    createBoosterEarningsView() {
+        const container = Utils.DOM.create('div', {
+            className: 'booster-earnings-view'
+        });
+
+        // Initialize BoosterEarningsManager if not already done
+        if (typeof BoosterEarningsManager !== 'undefined' && BoosterEarningsManager_Instance) {
+            // Initialize and render booster earnings
+            BoosterEarningsManager_Instance.init();
+            setTimeout(() => {
+                BoosterEarningsManager_Instance.renderBoosterEarnings();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'My Earnings',
+                content: '<div class="loading-spinner"></div><p>Loading earnings data...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if BoosterEarningsManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'My Earnings',
+                content: '<p>Booster earnings dashboard is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create booster profile view
+     */
+    createBoosterProfileView() {
+        const container = Utils.DOM.create('div', {
+            className: 'booster-profile-view'
+        });
+
+        // Initialize BoosterEarningsManager if not already done (profile is part of earnings manager)
+        if (typeof BoosterEarningsManager !== 'undefined' && BoosterEarningsManager_Instance) {
+            // Initialize and render booster profile
+            BoosterEarningsManager_Instance.init();
+            setTimeout(() => {
+                BoosterEarningsManager_Instance.renderBoosterProfile();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Booster Profile',
+                content: '<div class="loading-spinner"></div><p>Loading profile data...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if BoosterEarningsManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Booster Profile',
+                content: '<p>Booster profile is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);
