@@ -45,6 +45,18 @@ const DOM = {
                 });
             } else if (key.startsWith('on') && typeof value === 'function') {
                 element.addEventListener(key.slice(2).toLowerCase(), value);
+            } else if (key === 'disabled') {
+                // Handle disabled attribute properly - only set if true
+                if (value === true) {
+                    element.setAttribute('disabled', '');
+                }
+                // If value is false, don't set the attribute at all
+            } else if (key === 'checked') {
+                // Handle checked attribute properly - only set if true
+                if (value === true) {
+                    element.setAttribute('checked', '');
+                }
+                // If value is false, don't set the attribute at all
             } else {
                 element.setAttribute(key, value);
             }

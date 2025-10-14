@@ -721,6 +721,11 @@ class DashboardApp {
             return this.createRaidsView();
         }
         
+        // Handle orders view with actual implementation
+        if (item === 'orders' && (role === 'advertiser' || role === 'team_advertiser')) {
+            return this.createOrdersView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -805,6 +810,41 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Raid Booking',
                 content: '<p>Raid booking system is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create orders view
+     */
+    createOrdersView() {
+        const container = Utils.DOM.create('div', {
+            className: 'orders-view'
+        });
+
+        // Initialize OrderManager if not already done
+        if (typeof OrderManager !== 'undefined' && OrderManager_Instance) {
+            // Render orders management
+            setTimeout(() => {
+                OrderManager_Instance.renderOrders();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Order Management',
+                content: '<div class="loading-spinner"></div><p>Loading order management system...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if OrderManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Order Management',
+                content: '<p>Order management system is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);

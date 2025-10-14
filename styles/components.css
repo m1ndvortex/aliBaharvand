@@ -1751,3 +1751,624 @@ id Booking Styles */
         flex-direction: column;
     }
 }
+/*
+ Order Management Styles */
+.orders-management {
+    padding: var(--spacing-lg);
+    max-width: 100%;
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.orders-title {
+    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+}
+
+.orders-stats {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    min-width: 100px;
+}
+
+.stat-value {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-item.pending .stat-value {
+    color: var(--warning-color);
+}
+
+.stat-item.in-progress .stat-value {
+    color: var(--info-color);
+}
+
+.stat-item.evidence-submitted .stat-value {
+    color: var(--warning-color);
+}
+
+.stat-item.completed .stat-value {
+    color: var(--success-color);
+}
+
+.orders-controls {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.orders-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.bulk-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-primary);
+}
+
+.bulk-actions.hidden {
+    display: none;
+}
+
+.selected-count {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.orders-table-container {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.orders-table th,
+.orders-table td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.orders-table th {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.orders-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.orders-table th.sortable:hover {
+    background-color: var(--bg-hover);
+}
+
+.orders-table th.sortable::after {
+    content: '↕️';
+    position: absolute;
+    right: 8px;
+    opacity: 0.5;
+}
+
+.orders-table th.sort-asc::after {
+    content: '↑';
+    opacity: 1;
+}
+
+.orders-table th.sort-desc::after {
+    content: '↓';
+    opacity: 1;
+}
+
+.orders-table td {
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.orders-table tr:hover {
+    background-color: var(--bg-hover);
+}
+
+.order-select {
+    cursor: pointer;
+}
+
+.buyer-info,
+.booster-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.buyer-avatar,
+.booster-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.buyer-name,
+.booster-name {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+}
+
+.no-booster {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.order-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+/* Order Details Modal */
+.order-details {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.order-info-section,
+.order-timeline-section,
+.evidence-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.order-info-section h3,
+.order-timeline-section h3,
+.evidence-section h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
+}
+
+.order-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.info-field {
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+}
+
+.info-field label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-value {
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.order-timeline {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.timeline-item {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-left: 3px solid var(--border-primary);
+    margin-left: var(--spacing-md);
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: var(--discord-blurple);
+    border-radius: 50%;
+}
+
+.timeline-timestamp {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    min-width: 150px;
+}
+
+.timeline-status {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    min-width: 120px;
+}
+
+.timeline-note {
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.no-timeline {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.evidence-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.evidence-image {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.evidence-image:hover {
+    transform: scale(1.05);
+}
+
+.evidence-image-large {
+    max-width: 400px;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.evidence-notes {
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+}
+
+.evidence-notes label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Booster Assignment Modal */
+.booster-assignment {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.order-summary {
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.order-summary h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.order-summary p {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0;
+}
+
+.available-boosters h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.boosters-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.booster-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.booster-item:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--discord-blurple);
+}
+
+.booster-item input[type="radio"] {
+    cursor: pointer;
+}
+
+.booster-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    flex: 1;
+}
+
+.booster-info {
+    flex: 1;
+}
+
+.booster-name {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+}
+
+.booster-stats {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.no-boosters {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+/* Evidence Review Modal */
+.evidence-review {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.review-order-info {
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.review-order-info h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.evidence-display {
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+}
+
+.evidence-image-container {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.image-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.evidence-notes-container {
+    margin-top: var(--spacing-md);
+}
+
+.evidence-notes-container h5 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.evidence-notes-text {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.evidence-timestamp {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-md);
+    text-align: center;
+}
+
+/* Bulk Actions */
+.bulk-assignment,
+.bulk-delete-confirmation {
+    text-align: center;
+}
+
+.bulk-assignment p,
+.bulk-delete-confirmation p {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.warning-text {
+    color: var(--error-color);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Reject Order Form */
+.reject-order-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.reject-order-form label {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.reject-order-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Modal Image */
+.modal-image {
+    display: block;
+    margin: 0 auto;
+    border-radius: var(--radius-md);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.empty-state .card-body {
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orders-management {
+        padding: var(--spacing-md);
+    }
+    
+    .orders-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .orders-stats {
+        justify-content: center;
+    }
+    
+    .orders-filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .bulk-actions {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+    
+    .action-buttons {
+        justify-content: center;
+    }
+    
+    .orders-table-container {
+        overflow-x: auto;
+    }
+    
+    .orders-table {
+        min-width: 800px;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .order-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .timeline-item {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .timeline-timestamp,
+    .timeline-status {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-item {
+        min-width: 80px;
+        padding: var(--spacing-sm);
+    }
+    
+    .stat-value {
+        font-size: var(--font-size-base);
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: var(--spacing-sm);
+    }
+    
+    .buyer-info,
+    .booster-info {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .buyer-avatar,
+    .booster-avatar {
+        width: 24px;
+        height: 24px;
+    }
+}
