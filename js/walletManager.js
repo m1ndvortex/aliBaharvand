@@ -126,6 +126,10 @@ class WalletManager {
         const historySection = this.createTransactionHistorySection();
         walletContainer.appendChild(historySection);
 
+        // Conversion history section
+        const conversionHistorySection = this.createConversionHistorySection();
+        walletContainer.appendChild(conversionHistorySection);
+
         container.appendChild(walletContainer);
     }
 
@@ -535,6 +539,263 @@ class WalletManager {
     }
 
     /**
+     * Create conversion history section
+     * @returns {Element} Conversion history section element
+     */
+    createConversionHistorySection() {
+        const section = Utils.DOM.create('div', {
+            className: 'wallet-conversion-history-section'
+        });
+
+        const sectionHeader = Utils.DOM.create('div', {
+            className: 'section-header'
+        });
+
+        const sectionTitle = Utils.DOM.create('h3', {
+            className: 'section-title'
+        }, 'Recent Conversions');
+
+        const viewAllBtn = Components.createButton({
+            text: 'View All',
+            variant: 'secondary',
+            size: 'small',
+            onClick: () => this.showAllConversions()
+        });
+
+        sectionHeader.appendChild(sectionTitle);
+        sectionHeader.appendChild(viewAllBtn);
+
+        // Conversion list
+        const conversionList = Utils.DOM.create('div', {
+            className: 'conversion-history-list',
+            id: 'conversionHistoryList'
+        });
+
+        section.appendChild(sectionHeader);
+        section.appendChild(conversionList);
+
+        // Load recent conversions
+        this.loadRecentConversions();
+
+        return section;
+    }
+
+    /**
+     * Load recent conversions (last 5)
+     */
+    loadRecentConversions() {
+        const conversionList = Utils.DOM.select('#conversionHistoryList');
+        if (!conversionList) return;
+
+        const transactions = Array.from(AppState.getState('wallet.transactions').values());
+        
+        // Filter conversion transactions and group by conversionId
+        const conversions = transactions
+            .filter(tx => tx.type === 'conversion' && tx.conversionDetails)
+            .reduce((acc, tx) => {
+                const conversionId = tx.conversionId || tx.id;
+                if (!acc[conversionId]) {
+                    acc[conversionId] = {
+                        id: conversionId,
+                        timestamp: tx.createdAt,
+                        details: tx.conversionDetails,
+                        transactions: []
+                    };
+                }
+                acc[conversionId].transactions.push(tx);
+                return acc;
+            }, {});
+
+        // Sort by date (newest first) and take last 5
+        const recentConversions = Object.values(conversions)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 5);
+
+        Utils.DOM.empty(conversionList);
+
+        if (recentConversions.length === 0) {
+            const emptyState = Utils.DOM.create('div', {
+                className: 'empty-state'
+            });
+
+            emptyState.innerHTML = `
+                <div class="empty-state-icon">🔄</div>
+                <h4 class="empty-state-title">No Conversions Yet</h4>
+                <p class="empty-state-message">Your currency conversions will appear here.</p>
+            `;
+
+            conversionList.appendChild(emptyState);
+            return;
+        }
+
+        recentConversions.forEach(conversion => {
+            const conversionItem = this.createConversionHistoryItem(conversion);
+            conversionList.appendChild(conversionItem);
+        });
+    }
+
+    /**
+     * Create individual conversion history item
+     * @param {Object} conversion - Conversion data
+     * @returns {Element} Conversion item element
+     */
+    createConversionHistoryItem(conversion) {
+        const item = Utils.DOM.create('div', {
+            className: 'conversion-history-item'
+        });
+
+        const details = conversion.details || {};
+        const fromCurrency = details.fromCurrency || 'unknown';
+        const toCurrency = details.toCurrency || 'unknown';
+        const originalAmount = details.originalAmount || 0;
+        const receivedAmount = details.toAmount || 0;
+        const fee = details.fee || 0;
+
+        item.innerHTML = `
+            <div class="conversion-icon">🔄</div>
+            <div class="conversion-content">
+                <div class="conversion-header">
+                    <div class="conversion-description">
+                        ${this.formatCurrency(originalAmount, fromCurrency)} → ${this.formatCurrency(receivedAmount, toCurrency)}
+                    </div>
+                    <div class="conversion-timestamp">
+                        ${Utils.Format.timeAgo(conversion.timestamp)}
+                    </div>
+                </div>
+                <div class="conversion-details">
+                    <div class="conversion-rate">
+                        Rate: 1 ${fromCurrency.toUpperCase()} = ${(details.exchangeRate || 0).toFixed(6)} ${toCurrency.toUpperCase()}
+                    </div>
+                    <div class="conversion-fee">
+                        Fee: ${this.formatCurrency(fee, fromCurrency)}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return item;
+    }
+
+    /**
+     * Show all conversions in a modal
+     */
+    showAllConversions() {
+        const modalContent = Utils.DOM.create('div', {
+            className: 'all-conversions-modal'
+        });
+
+        const transactions = Array.from(AppState.getState('wallet.transactions').values());
+        
+        // Filter and group conversion transactions
+        const conversions = transactions
+            .filter(tx => tx.type === 'conversion' && tx.conversionDetails)
+            .reduce((acc, tx) => {
+                const conversionId = tx.conversionId || tx.id;
+                if (!acc[conversionId]) {
+                    acc[conversionId] = {
+                        id: conversionId,
+                        timestamp: tx.createdAt,
+                        details: tx.conversionDetails,
+                        transactions: []
+                    };
+                }
+                acc[conversionId].transactions.push(tx);
+                return acc;
+            }, {});
+
+        const allConversions = Object.values(conversions)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if (allConversions.length === 0) {
+            modalContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔄</div>
+                    <h4 class="empty-state-title">No Conversions Found</h4>
+                    <p class="empty-state-message">You haven't made any currency conversions yet.</p>
+                </div>
+            `;
+        } else {
+            const conversionsList = Utils.DOM.create('div', {
+                className: 'all-conversions-list'
+            });
+
+            allConversions.forEach(conversion => {
+                const item = this.createDetailedConversionItem(conversion);
+                conversionsList.appendChild(item);
+            });
+
+            modalContent.appendChild(conversionsList);
+        }
+
+        Components.showModal({
+            title: '🔄 All Currency Conversions',
+            content: modalContent,
+            size: 'large',
+            footer: [
+                Components.createButton({
+                    text: 'Close',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Create detailed conversion item for modal
+     * @param {Object} conversion - Conversion data
+     * @returns {Element} Detailed conversion item element
+     */
+    createDetailedConversionItem(conversion) {
+        const item = Utils.DOM.create('div', {
+            className: 'detailed-conversion-item'
+        });
+
+        const details = conversion.details || {};
+        const fromCurrency = details.fromCurrency || 'unknown';
+        const toCurrency = details.toCurrency || 'unknown';
+        const originalAmount = details.originalAmount || 0;
+        const receivedAmount = details.toAmount || 0;
+        const fee = details.fee || 0;
+        const rate = details.exchangeRate || 0;
+
+        item.innerHTML = `
+            <div class="conversion-summary">
+                <div class="conversion-main">
+                    <div class="conversion-flow">
+                        <span class="from-amount">${this.formatCurrency(originalAmount, fromCurrency)}</span>
+                        <span class="conversion-arrow">→</span>
+                        <span class="to-amount">${this.formatCurrency(receivedAmount, toCurrency)}</span>
+                    </div>
+                    <div class="conversion-date">
+                        ${Utils.Format.date(conversion.timestamp, 'datetime')}
+                    </div>
+                </div>
+                <div class="conversion-breakdown">
+                    <div class="breakdown-row">
+                        <span class="label">Exchange Rate:</span>
+                        <span class="value">1 ${fromCurrency.toUpperCase()} = ${rate.toFixed(6)} ${toCurrency.toUpperCase()}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Conversion Fee:</span>
+                        <span class="value">${this.formatCurrency(fee, fromCurrency)}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Total Deducted:</span>
+                        <span class="value">${this.formatCurrency(originalAmount + fee, fromCurrency)}</span>
+                    </div>
+                    <div class="breakdown-row highlight">
+                        <span class="label">Amount Received:</span>
+                        <span class="value">${this.formatCurrency(receivedAmount, toCurrency)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return item;
+    }
+
+    /**
      * Load and display transaction history
      */
     loadTransactionHistory() {
@@ -752,6 +1013,15 @@ class WalletManager {
      * @returns {string} Formatted amount
      */
     formatCurrency(amount, currency) {
+        // Handle null/undefined values
+        if (amount === null || amount === undefined || isNaN(amount)) {
+            amount = 0;
+        }
+        
+        if (!currency || typeof currency !== 'string') {
+            return `${amount}`;
+        }
+
         const formatters = {
             gold: (amt) => `${amt.toLocaleString()} G`,
             usd: (amt) => `$${amt.toFixed(2)}`,
@@ -951,108 +1221,335 @@ class WalletManager {
     }
 
     /**
-     * Show currency conversion modal
+     * Show enhanced currency conversion modal
      */
     showConvertModal() {
         const modalContent = Utils.DOM.create('div', {
             className: 'convert-modal'
         });
 
+        const balances = AppState.getState('wallet.balances');
+
         modalContent.innerHTML = `
             <div class="convert-form">
-                <div class="conversion-row">
+                <div class="conversion-header">
+                    <h4>💱 Currency Conversion</h4>
+                    <div class="exchange-rate-info">
+                        <span class="rate-update">Last updated: ${Utils.Format.timeAgo(this.exchangeRates.lastUpdated)}</span>
+                        <button class="refresh-rates-btn" id="refreshRatesBtn" title="Refresh Exchange Rates">🔄</button>
+                    </div>
+                </div>
+
+                <div class="conversion-section">
                     <div class="form-group">
                         <label class="form-label">From Currency</label>
-                        <select class="form-input" id="convertFromCurrency" onchange="window.walletManager.updateConvertPreview()">
-                            <option value="gold">🪙 Gold</option>
-                            <option value="usd">💵 US Dollar</option>
-                            <option value="toman">﷼ Iranian Toman</option>
+                        <select class="form-input currency-select" id="convertFromCurrency">
+                            <option value="gold">🪙 Gold (Balance: ${this.formatCurrency(balances.gold, 'gold')})</option>
+                            <option value="usd">💵 US Dollar (Balance: $${balances.usd.toFixed(2)})</option>
+                            <option value="toman">﷼ Iranian Toman (Balance: ${this.formatCurrency(balances.toman, 'toman')})</option>
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label class="form-label">Amount</label>
-                        <input type="number" class="form-input" id="convertAmount" placeholder="0.00" min="0" step="any" oninput="window.walletManager.updateConvertPreview()">
+                        <label class="form-label">Amount to Convert</label>
+                        <div class="amount-input-group">
+                            <input type="number" class="form-input" id="convertFromAmount" placeholder="0.00" min="1" step="any">
+                            <button class="max-amount-btn" id="maxAmountBtn">MAX</button>
+                        </div>
+                        <div class="balance-info" id="availableBalance">Available: ${this.formatCurrency(balances.gold, 'gold')}</div>
                     </div>
-                </div>
-                
-                <div class="conversion-arrow">⬇️</div>
-                
-                <div class="conversion-row">
+
+                    <div class="conversion-arrow">
+                        <button class="swap-currencies-btn" id="swapCurrenciesBtn" title="Swap currencies">⇅</button>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label">To Currency</label>
-                        <select class="form-input" id="convertToCurrency" onchange="window.walletManager.updateConvertPreview()">
+                        <select class="form-input currency-select" id="convertToCurrency">
                             <option value="usd">💵 US Dollar</option>
                             <option value="gold">🪙 Gold</option>
                             <option value="toman">﷼ Iranian Toman</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">You'll Receive</label>
-                        <div class="form-input readonly" id="convertResult">0.00</div>
+                </div>
+
+                <div class="conversion-preview" id="conversionPreview">
+                    <div class="preview-header">
+                        <h5>Conversion Preview</h5>
+                    </div>
+                    <div class="preview-details">
+                        <div class="preview-item">
+                            <span class="preview-label">Exchange Rate:</span>
+                            <span class="preview-value" id="previewRate">-</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Conversion Fee (${this.exchangeRates.conversionFees.percentage}%):</span>
+                            <span class="preview-value" id="previewFee">-</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Amount after fee:</span>
+                            <span class="preview-value" id="previewAfterFee">-</span>
+                        </div>
+                        <div class="preview-item total">
+                            <span class="preview-label">You will receive:</span>
+                            <span class="preview-value" id="previewTotal">-</span>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="conversion-details" id="conversionDetails">
-                    <div class="detail-row">
-                        <span>Exchange Rate:</span>
-                        <span id="conversionRate">-</span>
+
+                <div class="conversion-limits" id="conversionLimits">
+                    <h5>Conversion Limits & Fees</h5>
+                    <div class="limits-info">
+                        <div class="limit-item">
+                            <span>Minimum conversion fee:</span>
+                            <span id="minFeeDisplay">-</span>
+                        </div>
+                        <div class="limit-item">
+                            <span>Daily conversion limit:</span>
+                            <span>$10,000 USD equivalent</span>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <span>Conversion Fee (2%):</span>
-                        <span id="conversionFee">-</span>
+                </div>
+
+                <div class="conversion-warnings" id="conversionWarnings" style="display: none;">
+                    <div class="warning-message">
+                        <span class="warning-icon">⚠️</span>
+                        <span class="warning-text" id="warningText"></span>
                     </div>
                 </div>
             </div>
         `;
 
+        // Store reference to convert button
+        this.convertButton = Components.createButton({
+            text: 'Convert Currency',
+            variant: 'info',
+            id: 'convertButton',
+            disabled: true,
+            onClick: () => this.processConversion()
+        });
+
         Components.showModal({
             title: '🔄 Convert Currency',
             content: modalContent,
-            size: 'medium',
+            size: 'large',
             footer: [
                 Components.createButton({
                     text: 'Cancel',
                     variant: 'secondary',
                     onClick: () => Components.closeModal()
                 }),
-                Components.createButton({
-                    text: 'Convert',
-                    variant: 'info',
-                    onClick: () => this.processConversion()
-                })
+                this.convertButton
             ]
         });
 
-        // Set reference and initialize
-        window.walletManager = this;
-        setTimeout(() => this.updateConvertPreview(), 100);
-    } 
-   /**
-     * Update conversion preview in modal
+        // Set up event listeners
+        this.setupConversionModalEvents();
+
+        // Initial preview update
+        setTimeout(() => this.updateConversionModalPreview(), 100);
+    }
+
+    /**
+     * Set up event listeners for conversion modal
      */
-    updateConvertPreview() {
+    setupConversionModalEvents() {
+        const fromAmountInput = Utils.DOM.select('#convertFromAmount');
+        const fromCurrencySelect = Utils.DOM.select('#convertFromCurrency');
+        const toCurrencySelect = Utils.DOM.select('#convertToCurrency');
+        const maxAmountBtn = Utils.DOM.select('#maxAmountBtn');
+        const swapBtn = Utils.DOM.select('#swapCurrenciesBtn');
+        const refreshBtn = Utils.DOM.select('#refreshRatesBtn');
+
+        const updatePreview = () => this.updateConversionModalPreview();
+
+        // Input and selection changes
+        fromAmountInput?.addEventListener('input', updatePreview);
+        fromCurrencySelect?.addEventListener('change', () => {
+            this.updateAvailableBalance();
+            updatePreview();
+        });
+        toCurrencySelect?.addEventListener('change', updatePreview);
+
+        // Max amount button
+        maxAmountBtn?.addEventListener('click', () => {
+            const fromCurrency = fromCurrencySelect.value;
+            const balances = AppState.getState('wallet.balances');
+            const maxAmount = balances[fromCurrency];
+            fromAmountInput.value = maxAmount;
+            updatePreview();
+        });
+
+        // Swap currencies button
+        swapBtn?.addEventListener('click', () => {
+            const fromValue = fromCurrencySelect.value;
+            const toValue = toCurrencySelect.value;
+            
+            fromCurrencySelect.value = toValue;
+            toCurrencySelect.value = fromValue;
+            
+            this.updateAvailableBalance();
+            updatePreview();
+        });
+
+        // Refresh rates button
+        refreshBtn?.addEventListener('click', () => {
+            this.refreshExchangeRates();
+        });
+    }
+
+    /**
+     * Update available balance display
+     */
+    updateAvailableBalance() {
+        const fromCurrency = Utils.DOM.select('#convertFromCurrency')?.value;
+        const balanceInfo = Utils.DOM.select('#availableBalance');
+        const minFeeDisplay = Utils.DOM.select('#minFeeDisplay');
+        
+        if (fromCurrency && balanceInfo) {
+            const balances = AppState.getState('wallet.balances');
+            const balance = balances[fromCurrency];
+            balanceInfo.textContent = `Available: ${this.formatCurrency(balance, fromCurrency)}`;
+            
+            // Update minimum fee display
+            const minFee = this.exchangeRates.conversionFees.minimum[fromCurrency] || 0;
+            if (minFeeDisplay) {
+                minFeeDisplay.textContent = this.formatCurrency(minFee, fromCurrency);
+            }
+        }
+    }
+
+    /**
+     * Refresh exchange rates (simulate API call)
+     */
+    refreshExchangeRates() {
+        const refreshBtn = Utils.DOM.select('#refreshRatesBtn');
+        if (refreshBtn) {
+            refreshBtn.innerHTML = '⏳';
+            refreshBtn.disabled = true;
+        }
+
+        // Simulate API delay
+        setTimeout(() => {
+            // Update timestamp
+            this.exchangeRates.lastUpdated = new Date().toISOString();
+            
+            // Simulate small rate fluctuations (±2%)
+            Object.keys(this.exchangeRates.rates).forEach(rateKey => {
+                const currentRate = this.exchangeRates.rates[rateKey];
+                const fluctuation = (Math.random() - 0.5) * 0.04; // ±2%
+                this.exchangeRates.rates[rateKey] = currentRate * (1 + fluctuation);
+            });
+
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '🔄';
+                refreshBtn.disabled = false;
+            }
+
+            // Update rate info
+            const rateUpdate = Utils.DOM.select('.rate-update');
+            if (rateUpdate) {
+                rateUpdate.textContent = `Last updated: ${Utils.Format.timeAgo(this.exchangeRates.lastUpdated)}`;
+            }
+
+            // Update preview
+            this.updateConversionModalPreview();
+
+            Components.showNotification({
+                type: 'success',
+                title: 'Exchange Rates Updated',
+                message: 'Latest exchange rates have been loaded.',
+                duration: 2000
+            });
+        }, 1000);
+    } 
+    /**
+     * Update conversion preview in enhanced modal
+     */
+    updateConversionModalPreview() {
         const fromCurrency = Utils.DOM.select('#convertFromCurrency')?.value;
         const toCurrency = Utils.DOM.select('#convertToCurrency')?.value;
-        const amount = parseFloat(Utils.DOM.select('#convertAmount')?.value) || 0;
+        const amount = parseFloat(Utils.DOM.select('#convertFromAmount')?.value) || 0;
         
-        const resultEl = Utils.DOM.select('#convertResult');
-        const rateEl = Utils.DOM.select('#conversionRate');
-        const feeEl = Utils.DOM.select('#conversionFee');
+        const previewRate = Utils.DOM.select('#previewRate');
+        const previewFee = Utils.DOM.select('#previewFee');
+        const previewAfterFee = Utils.DOM.select('#previewAfterFee');
+        const previewTotal = Utils.DOM.select('#previewTotal');
+        const convertButton = this.convertButton;
+        const warningsDiv = Utils.DOM.select('#conversionWarnings');
+        const warningText = Utils.DOM.select('#warningText');
 
-        if (!fromCurrency || !toCurrency || !resultEl) return;
+        if (!fromCurrency || !toCurrency || !previewRate) return;
+
+        // Reset warnings
+        if (warningsDiv) warningsDiv.style.display = 'none';
 
         if (amount <= 0) {
-            resultEl.textContent = '0.00';
-            rateEl.textContent = '-';
-            feeEl.textContent = '-';
+            previewRate.textContent = '-';
+            previewFee.textContent = '-';
+            previewAfterFee.textContent = '-';
+            previewTotal.textContent = '-';
+            if (convertButton) convertButton.disabled = true;
             return;
         }
 
-        const conversion = this.calculateConversion(amount, fromCurrency, toCurrency);
+        // Check if same currency
+        if (fromCurrency === toCurrency) {
+            previewRate.textContent = '1:1 (Same currency)';
+            previewFee.textContent = 'N/A';
+            previewAfterFee.textContent = 'N/A';
+            previewTotal.textContent = 'N/A';
+            if (convertButton) convertButton.disabled = true;
+            if (warningsDiv && warningText) {
+                warningText.textContent = 'Please select different currencies for conversion.';
+                warningsDiv.style.display = 'block';
+            }
+            return;
+        }
+
+        // Check balance
+        const balances = AppState.getState('wallet.balances');
+        const availableBalance = balances[fromCurrency];
         
-        resultEl.textContent = this.formatCurrency(conversion.toAmount, toCurrency);
-        rateEl.textContent = `1 ${fromCurrency.toUpperCase()} = ${conversion.exchangeRate} ${toCurrency.toUpperCase()}`;
-        feeEl.textContent = this.formatCurrency(conversion.fee, fromCurrency);
+        if (amount > availableBalance) {
+            if (warningsDiv && warningText) {
+                warningText.textContent = `Insufficient balance. Available: ${this.formatCurrency(availableBalance, fromCurrency)}`;
+                warningsDiv.style.display = 'block';
+            }
+            if (convertButton) convertButton.disabled = true;
+            return;
+        }
+
+        // Calculate conversion
+        const conversion = this.calculateConversion(amount, fromCurrency, toCurrency);
+        const rate = this.getExchangeRate(fromCurrency, toCurrency);
+        
+        // Update preview
+        previewRate.textContent = `1 ${fromCurrency.toUpperCase()} = ${rate.toFixed(6)} ${toCurrency.toUpperCase()}`;
+        previewFee.textContent = this.formatCurrency(conversion.fee, fromCurrency);
+        previewAfterFee.textContent = this.formatCurrency(amount - conversion.fee, fromCurrency);
+        previewTotal.textContent = this.formatCurrency(conversion.toAmount, toCurrency);
+
+        // Check minimum conversion amount
+        const minFee = this.exchangeRates.conversionFees.minimum[fromCurrency] || 0;
+        if (conversion.fee < minFee) {
+            if (warningsDiv && warningText) {
+                warningText.textContent = `Minimum conversion fee of ${this.formatCurrency(minFee, fromCurrency)} will be applied.`;
+                warningsDiv.style.display = 'block';
+            }
+        }
+
+        // Enable convert button if all validations pass
+        if (convertButton) {
+            convertButton.disabled = false;
+        }
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     */
+    updateConvertPreview() {
+        this.updateConversionModalPreview();
     }
 
     /**
@@ -1188,13 +1685,14 @@ class WalletManager {
     }
 
     /**
-     * Process currency conversion
+     * Process enhanced currency conversion with validation and limits
      */
     processConversion() {
         const fromCurrency = Utils.DOM.select('#convertFromCurrency')?.value;
         const toCurrency = Utils.DOM.select('#convertToCurrency')?.value;
-        const amount = parseFloat(Utils.DOM.select('#convertAmount')?.value);
+        const amount = parseFloat(Utils.DOM.select('#convertFromAmount')?.value);
 
+        // Enhanced validation
         if (!fromCurrency || !toCurrency || !amount || amount <= 0) {
             Components.showNotification({
                 type: 'error',
@@ -1225,57 +1723,188 @@ class WalletManager {
             return;
         }
 
+        // Check daily conversion limits (simulate)
+        const dailyLimitUSD = 10000;
+        const amountInUSD = this.convertToUSD(amount, fromCurrency);
+        
+        if (amountInUSD > dailyLimitUSD) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Daily Limit Exceeded',
+                message: `Conversion amount exceeds daily limit of $${dailyLimitUSD.toLocaleString()} USD.`
+            });
+            return;
+        }
+
         const conversion = this.calculateConversion(amount, fromCurrency, toCurrency);
 
-        // Create conversion transactions
-        const debitTransaction = {
-            id: 'tx_' + Date.now() + '_debit',
-            type: 'conversion',
-            amount: -(amount + conversion.fee),
-            currency: fromCurrency,
-            status: 'completed',
-            description: `Converted ${this.formatCurrency(amount, fromCurrency)} to ${toCurrency.toUpperCase()}`,
-            conversionDetails: conversion,
-            createdAt: new Date().toISOString(),
-            completedAt: new Date().toISOString()
+        // Apply minimum fee if necessary
+        const minFee = this.exchangeRates.conversionFees.minimum[fromCurrency] || 0;
+        const actualFee = Math.max(conversion.fee, minFee);
+        
+        // Recalculate with actual fee
+        const finalConversion = {
+            ...conversion,
+            fee: actualFee,
+            netAmount: conversion.toAmount // Amount received remains the same, fee is deducted from source
         };
 
-        const creditTransaction = {
-            id: 'tx_' + Date.now() + '_credit',
-            type: 'conversion',
-            amount: conversion.toAmount,
-            currency: toCurrency,
-            status: 'completed',
-            description: `Received ${this.formatCurrency(conversion.toAmount, toCurrency)} from ${fromCurrency.toUpperCase()} conversion`,
-            conversionDetails: conversion,
-            createdAt: new Date().toISOString(),
-            completedAt: new Date().toISOString()
-        };
+        // Show confirmation dialog
+        this.showConversionConfirmation(amount, fromCurrency, toCurrency, finalConversion);
+    }
 
-        // Update balances
-        const newBalances = { ...currentBalances };
-        newBalances[fromCurrency] -= (amount + conversion.fee);
-        newBalances[toCurrency] += conversion.toAmount;
-
-        // Update transactions
-        const transactions = AppState.getState('wallet.transactions');
-        transactions.set(debitTransaction.id, debitTransaction);
-        transactions.set(creditTransaction.id, creditTransaction);
-
-        // Update state
-        AppState.setState({
-            'wallet.balances': newBalances,
-            'wallet.transactions': transactions
+    /**
+     * Show conversion confirmation dialog
+     */
+    showConversionConfirmation(amount, fromCurrency, toCurrency, conversion) {
+        const confirmContent = Utils.DOM.create('div', {
+            className: 'conversion-confirmation'
         });
 
-        Components.closeModal();
-        Components.showNotification({
-            type: 'success',
-            title: 'Conversion Successful',
-            message: `Successfully converted ${this.formatCurrency(amount, fromCurrency)} to ${this.formatCurrency(conversion.toAmount, toCurrency)}.`
-        });
+        confirmContent.innerHTML = `
+            <div class="confirmation-details">
+                <h4>Confirm Currency Conversion</h4>
+                <div class="conversion-summary">
+                    <div class="summary-row">
+                        <span class="label">Converting:</span>
+                        <span class="value">${this.formatCurrency(amount, fromCurrency)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Conversion Fee:</span>
+                        <span class="value fee">${this.formatCurrency(conversion.fee, fromCurrency)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Total Deducted:</span>
+                        <span class="value total-deducted">${this.formatCurrency(amount + conversion.fee, fromCurrency)}</span>
+                    </div>
+                    <div class="summary-row highlight">
+                        <span class="label">You will receive:</span>
+                        <span class="value received">${this.formatCurrency(conversion.toAmount, toCurrency)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Exchange Rate:</span>
+                        <span class="value">1 ${fromCurrency.toUpperCase()} = ${conversion.exchangeRate.toFixed(6)} ${toCurrency.toUpperCase()}</span>
+                    </div>
+                </div>
+                <div class="confirmation-warning">
+                    <span class="warning-icon">ℹ️</span>
+                    <span>This conversion is final and cannot be undone.</span>
+                </div>
+            </div>
+        `;
 
-        // Refresh transaction history
+        Components.showModal({
+            title: '🔄 Confirm Conversion',
+            content: confirmContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Confirm Conversion',
+                    variant: 'success',
+                    onClick: () => this.executeConversion(amount, fromCurrency, toCurrency, conversion)
+                })
+            ]
+        });
+    }
+
+    /**
+     * Execute the actual conversion
+     */
+    executeConversion(amount, fromCurrency, toCurrency, conversion) {
+        try {
+            // Create conversion transactions with detailed tracking
+            const timestamp = new Date().toISOString();
+            const conversionId = 'conv_' + Date.now();
+
+            const debitTransaction = {
+                id: `tx_${Date.now()}_debit`,
+                type: 'conversion',
+                amount: -(amount + conversion.fee),
+                currency: fromCurrency,
+                status: 'completed',
+                description: `Converted ${this.formatCurrency(amount, fromCurrency)} to ${toCurrency.toUpperCase()}`,
+                conversionId: conversionId,
+                conversionDetails: {
+                    ...conversion,
+                    originalAmount: amount,
+                    fromCurrency: fromCurrency,
+                    toCurrency: toCurrency,
+                    timestamp: timestamp
+                },
+                createdAt: timestamp,
+                completedAt: timestamp
+            };
+
+            const creditTransaction = {
+                id: `tx_${Date.now() + 1}_credit`,
+                type: 'conversion',
+                amount: conversion.toAmount,
+                currency: toCurrency,
+                status: 'completed',
+                description: `Received ${this.formatCurrency(conversion.toAmount, toCurrency)} from ${fromCurrency.toUpperCase()} conversion`,
+                conversionId: conversionId,
+                conversionDetails: {
+                    ...conversion,
+                    originalAmount: amount,
+                    fromCurrency: fromCurrency,
+                    toCurrency: toCurrency,
+                    timestamp: timestamp
+                },
+                createdAt: timestamp,
+                completedAt: timestamp
+            };
+
+            // Update balances
+            const currentBalances = AppState.getState('wallet.balances');
+            const newBalances = { ...currentBalances };
+            newBalances[fromCurrency] -= (amount + conversion.fee);
+            newBalances[toCurrency] += conversion.toAmount;
+
+            // Update transactions
+            const transactions = AppState.getState('wallet.transactions');
+            transactions.set(debitTransaction.id, debitTransaction);
+            transactions.set(creditTransaction.id, creditTransaction);
+
+            // Update state
+            AppState.setState({
+                'wallet.balances': newBalances,
+                'wallet.transactions': transactions
+            });
+
+            // Close modal and show success
+            Components.closeModal();
+            
+            Components.showNotification({
+                type: 'success',
+                title: 'Conversion Successful',
+                message: `Successfully converted ${this.formatCurrency(amount, fromCurrency)} to ${this.formatCurrency(conversion.toAmount, toCurrency)}.`,
+                duration: 5000
+            });
+
+            // Update conversion history in main interface
+            this.updateConversionHistory();
+
+        } catch (error) {
+            console.error('Conversion failed:', error);
+            Components.showNotification({
+                type: 'error',
+                title: 'Conversion Failed',
+                message: 'An error occurred during the conversion. Please try again.',
+                duration: 5000
+            });
+        }
+    }
+
+    /**
+     * Update conversion history display
+     */
+    updateConversionHistory() {
+        // This will trigger the transaction history update through state subscription
         this.loadTransactionHistory();
     }
 

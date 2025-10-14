@@ -48,13 +48,13 @@
                 console.log('Initializing wallet test...');
                 
                 // Initialize wallet manager
-                await walletManager.init();
+                await window.walletManager.init();
                 
                 // Get container
                 const container = document.getElementById('walletTestContainer');
                 
                 // Render wallet interface
-                walletManager.renderWalletInterface(container);
+                window.walletManager.renderWalletInterface(container);
                 
                 console.log('Wallet test initialized successfully');
                 
