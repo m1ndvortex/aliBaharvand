@@ -1304,6 +1304,11 @@ class DashboardApp {
             return this.createBoosterProfileView();
         }
         
+        // Handle wallet view with actual implementation
+        if (item === 'wallet') {
+            return this.createWalletView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -1780,6 +1785,11 @@ class DashboardApp {
             if (typeof TeamManager !== 'undefined' && TeamManager.init) {
                 await TeamManager.init();
             }
+            
+            // Initialize WalletManager if available
+            if (typeof walletManager !== 'undefined' && walletManager.init) {
+                await walletManager.init();
+            }
         } catch (error) {
             console.warn('Failed to initialize some managers:', error);
         }
@@ -1956,6 +1966,41 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Booster Profile',
                 content: '<p>Booster profile is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create wallet view
+     */
+    createWalletView() {
+        const container = Utils.DOM.create('div', {
+            className: 'wallet-view'
+        });
+
+        // Initialize WalletManager if not already done
+        if (typeof walletManager !== 'undefined' && walletManager.renderWalletInterface) {
+            // WalletManager will render directly to container
+            setTimeout(() => {
+                walletManager.renderWalletInterface(container);
+            }, 0);
+            
+            // Return loading placeholder initially
+            const loadingCard = Components.createCard({
+                title: '💳 Wallet Management',
+                content: '<div class="loading-spinner"></div><p>Loading wallet data...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if WalletManager is not loaded
+            const errorCard = Components.createCard({
+                title: '💳 Wallet Management',
+                content: '<p>Wallet system is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);
