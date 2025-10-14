@@ -1289,6 +1289,11 @@ class DashboardApp {
             return this.createTeamAnalyticsView();
         }
         
+        // Handle booster orders view with actual implementation
+        if (item === 'orders' && role === 'booster') {
+            return this.createBoosterOrdersView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -1826,6 +1831,42 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Team Analytics',
                 content: '<p>Team analytics dashboard is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create booster orders view
+     */
+    createBoosterOrdersView() {
+        const container = Utils.DOM.create('div', {
+            className: 'booster-orders-view'
+        });
+
+        // Initialize BoosterOrdersManager if not already done
+        if (typeof BoosterOrdersManager !== 'undefined') {
+            // Create instance and render booster orders
+            const boosterOrdersManager = new BoosterOrdersManager();
+            setTimeout(() => {
+                boosterOrdersManager.renderBoosterOrders();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Assigned Orders',
+                content: '<div class="loading-spinner"></div><p>Loading assigned orders...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if BoosterOrdersManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Assigned Orders',
+                content: '<p>Booster orders management is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);

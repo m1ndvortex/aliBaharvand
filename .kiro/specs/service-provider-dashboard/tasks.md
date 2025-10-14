@@ -171,7 +171,11 @@
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [ ] 6. Build Booster dashboard functionality
-  - [ ] 6.1 Create assigned orders management
+  - [x] 6.1 Create assigned orders management
+
+
+
+
 
     - Build assigned orders listing with status filtering and sorting
     - Implement order start functionality with status change to "In Progress"
@@ -181,6 +185,7 @@
     - _Requirements: 6.1, 6.2_
 
   - [ ] 6.2 Implement evidence submission system
+
     - Create evidence upload modal with drag-and-drop image upload
     - Build image preview and validation system with file type and size checks
     - Implement completion notes textarea with character count and validation

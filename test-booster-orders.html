@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booster Orders Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Booster Orders Management Test</h1>
+        </header>
+        
+        <div class="dashboard-content">
+            <main class="main-content">
+                <div class="content-area">
+                    <!-- Booster orders will be rendered here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container" id="modalContainer"></div>
+    </div>
+
+    <!-- Notification container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/mockImages.js"></script>
+    <script src="js/mockDataUtils.js"></script>
+    <script src="js/mockDataAPI.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/boosterOrdersManager.js"></script>
+
+    <script>
+        // Initialize test environment
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize mock data API
+                window.MockDataAPI = new MockDataAPI();
+                
+                // Set up test user as a booster
+                AppState.setState('user', {
+                    id: 'user_001', // This user has booster role and assigned orders in mock data
+                    discordUsername: 'ProBooster#1234',
+                    roles: ['advertiser', 'team_advertiser', 'booster']
+                });
+                
+                // Initialize booster orders manager
+                const boosterOrdersManager = new BoosterOrdersManager();
+                
+                // Render the booster orders interface
+                boosterOrdersManager.renderBoosterOrders();
+                
+                console.log('Booster Orders Test initialized successfully');
+                
+                // Show success notification
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Test Initialized',
+                    message: 'Booster Orders Management test is ready',
+                    duration: 3000
+                });
+                
+            } catch (error) {
+                console.error('Failed to initialize test:', error);
+                
+                // Show error notification
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Initialization Error',
+                    message: 'Failed to initialize test environment',
+                    duration: 5000
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+</content>
