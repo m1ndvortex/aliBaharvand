@@ -16,6 +16,12 @@ class WalletManager {
         this.showDepositModal = this.showDepositModal.bind(this);
         this.showWithdrawModal = this.showWithdrawModal.bind(this);
         this.showConvertModal = this.showConvertModal.bind(this);
+        this.processDeposit = this.processDeposit.bind(this);
+        this.processWithdrawal = this.processWithdrawal.bind(this);
+        this.showPaymentMethodModal = this.showPaymentMethodModal.bind(this);
+        this.addPaymentMethod = this.addPaymentMethod.bind(this);
+        this.updatePaymentMethodFields = this.updatePaymentMethodFields.bind(this);
+        this.updateWithdrawLimits = this.updateWithdrawLimits.bind(this);
         this.calculateConversion = this.calculateConversion.bind(this);
         this.formatCurrency = this.formatCurrency.bind(this);
         this.animateBalanceChange = this.animateBalanceChange.bind(this);
@@ -1326,6 +1332,771 @@ class WalletManager {
      */
     updateTransactionHistory() {
         this.loadTransactionHistory();
+    }
+
+    /**
+     * Process deposit
+     */
+    async processDeposit() {
+        const currency = Utils.DOM.select('#depositCurrency')?.value;
+        const amount = parseFloat(Utils.DOM.select('#depositAmount')?.value);
+        const paymentMethodId = Utils.DOM.select('#depositPaymentMethod')?.value;
+
+        // Validation
+        if (!currency || !amount || amount <= 0) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Invalid Input',
+                message: 'Please enter a valid amount greater than 0.',
+                duration: 3000
+            });
+            return;
+        }
+
+        if (!paymentMethodId) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Payment Method Required',
+                message: 'Please select a payment method.',
+                duration: 3000
+            });
+            return;
+        }
+
+        try {
+            // Close modal
+            Components.closeModal();
+
+            // Show processing notification
+            Components.showNotification({
+                type: 'info',
+                title: 'Processing Deposit',
+                message: 'Your deposit is being processed...',
+                duration: 2000
+            });
+
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Update balance
+            const currentBalances = AppState.getState('wallet.balances');
+            const newBalances = { ...currentBalances };
+            newBalances[currency] += amount;
+
+            AppState.setState('wallet.balances', newBalances);
+
+            // Create transaction record
+            const transaction = {
+                id: `tx_${Date.now()}`,
+                type: 'deposit',
+                amount: amount,
+                currency: currency,
+                status: 'completed',
+                description: `Deposit via ${this.getPaymentMethodName(paymentMethodId)}`,
+                paymentMethodId: paymentMethodId,
+                createdAt: new Date().toISOString(),
+                completedAt: new Date().toISOString()
+            };
+
+            // Add transaction to state
+            const transactions = AppState.getState('wallet.transactions');
+            transactions.set(transaction.id, transaction);
+            AppState.setState('wallet.transactions', transactions);
+
+            // Show success notification
+            Components.showNotification({
+                type: 'success',
+                title: 'Deposit Successful',
+                message: `Successfully deposited ${this.formatCurrency(amount, currency)} to your wallet.`,
+                duration: 4000
+            });
+
+            // Update transaction history display
+            this.loadTransactionHistory();
+
+        } catch (error) {
+            console.error('Deposit processing failed:', error);
+            Components.showNotification({
+                type: 'error',
+                title: 'Deposit Failed',
+                message: 'Failed to process deposit. Please try again.',
+                duration: 4000
+            });
+        }
+    }
+
+    /**
+     * Complete withdrawal modal implementation
+     */
+    completeWithdrawModal() {
+        const balances = AppState.getState('wallet.balances');
+        
+        const modalContent = Utils.DOM.create('div', {
+            className: 'withdraw-modal'
+        });
+
+        modalContent.innerHTML = `
+            <div class="withdraw-form">
+                <div class="form-group">
+                    <label class="form-label">Currency</label>
+                    <select class="form-input" id="withdrawCurrency" onchange="window.walletManager.updateWithdrawLimits()">
+                        <option value="usd" ${balances.usd > 0 ? '' : 'disabled'}>💵 US Dollar (${this.formatCurrency(balances.usd, 'usd')} available)</option>
+                        <option value="toman" ${balances.toman > 0 ? '' : 'disabled'}>﷼ Iranian Toman (${this.formatCurrency(balances.toman, 'toman')} available)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" class="form-input" id="withdrawAmount" placeholder="0.00" min="1" step="any">
+                    <small class="form-help" id="withdrawLimits">Minimum withdrawal: $10 USD or 500,000 Toman</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Withdrawal Method</label>
+                    <select class="form-input" id="withdrawPaymentMethod">
+                        <option value="">Select payment method...</option>
+                    </select>
+                    <button type="button" class="btn-link" onclick="walletManager.showPaymentMethodModal()">+ Add New Payment Method</button>
+                </div>
+                <div class="withdraw-info">
+                    <p><strong>Note:</strong> Withdrawal requests require admin approval and may take 1-3 business days to process. A small processing fee may apply.</p>
+                </div>
+            </div>
+        `;
+
+        // Populate payment methods
+        this.populateWithdrawalPaymentMethods();
+
+        Components.showModal({
+            title: '💸 Withdraw Funds',
+            content: modalContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Request Withdrawal',
+                    variant: 'warning',
+                    onClick: () => this.processWithdrawal()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Update withdrawal limits based on selected currency
+     */
+    updateWithdrawLimits() {
+        const currency = Utils.DOM.select('#withdrawCurrency')?.value;
+        const limitsEl = Utils.DOM.select('#withdrawLimits');
+        
+        if (!limitsEl || !currency) return;
+
+        const limits = {
+            usd: 'Minimum withdrawal: $10 USD',
+            toman: 'Minimum withdrawal: 500,000 Toman'
+        };
+
+        limitsEl.textContent = limits[currency] || 'Select currency to see limits';
+    }
+
+    /**
+     * Populate withdrawal payment methods
+     */
+    populateWithdrawalPaymentMethods() {
+        const select = Utils.DOM.select('#withdrawPaymentMethod');
+        if (!select) return;
+
+        const paymentMethods = Array.from(AppState.getState('wallet.paymentMethods').values());
+        
+        // Clear existing options except first
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
+        }
+
+        paymentMethods.forEach(method => {
+            if (method.isVerified) {
+                const option = Utils.DOM.create('option', {
+                    value: method.id
+                }, this.getPaymentMethodDisplayName(method));
+                select.appendChild(option);
+            }
+        });
+
+        if (paymentMethods.filter(m => m.isVerified).length === 0) {
+            const option = Utils.DOM.create('option', {
+                value: '',
+                disabled: true
+            }, 'No verified payment methods available');
+            select.appendChild(option);
+        }
+    }
+
+    /**
+     * Process withdrawal request
+     */
+    async processWithdrawal() {
+        const currency = Utils.DOM.select('#withdrawCurrency')?.value;
+        const amount = parseFloat(Utils.DOM.select('#withdrawAmount')?.value);
+        const paymentMethodId = Utils.DOM.select('#withdrawPaymentMethod')?.value;
+
+        // Validation
+        if (!currency || !amount || amount <= 0) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Invalid Input',
+                message: 'Please enter a valid amount greater than 0.',
+                duration: 3000
+            });
+            return;
+        }
+
+        // Check minimum withdrawal amounts
+        const minimums = { usd: 10, toman: 500000 };
+        if (amount < minimums[currency]) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Amount Too Low',
+                message: `Minimum withdrawal is ${this.formatCurrency(minimums[currency], currency)}.`,
+                duration: 3000
+            });
+            return;
+        }
+
+        if (!paymentMethodId) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Payment Method Required',
+                message: 'Please select a payment method.',
+                duration: 3000
+            });
+            return;
+        }
+
+        // Check sufficient balance
+        const currentBalances = AppState.getState('wallet.balances');
+        if (currentBalances[currency] < amount) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Insufficient Balance',
+                message: `You only have ${this.formatCurrency(currentBalances[currency], currency)} available.`,
+                duration: 3000
+            });
+            return;
+        }
+
+        try {
+            // Close modal
+            Components.closeModal();
+
+            // Show processing notification
+            Components.showNotification({
+                type: 'info',
+                title: 'Processing Withdrawal Request',
+                message: 'Your withdrawal request is being submitted...',
+                duration: 2000
+            });
+
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Create withdrawal transaction (pending status)
+            const transaction = {
+                id: `tx_${Date.now()}`,
+                type: 'withdrawal',
+                amount: -amount, // Negative for withdrawal
+                currency: currency,
+                status: 'pending',
+                description: `Withdrawal request to ${this.getPaymentMethodName(paymentMethodId)}`,
+                paymentMethodId: paymentMethodId,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                adminNotes: null
+            };
+
+            // Add transaction to state
+            const transactions = AppState.getState('wallet.transactions');
+            transactions.set(transaction.id, transaction);
+            AppState.setState('wallet.transactions', transactions);
+
+            // Show success notification
+            Components.showNotification({
+                type: 'success',
+                title: 'Withdrawal Request Submitted',
+                message: `Withdrawal request for ${this.formatCurrency(amount, currency)} has been submitted for admin approval.`,
+                duration: 5000
+            });
+
+            // Update transaction history display
+            this.loadTransactionHistory();
+
+        } catch (error) {
+            console.error('Withdrawal request failed:', error);
+            Components.showNotification({
+                type: 'error',
+                title: 'Withdrawal Request Failed',
+                message: 'Failed to submit withdrawal request. Please try again.',
+                duration: 4000
+            });
+        }
+    }
+
+    /**
+     * Show payment method management modal
+     */
+    showPaymentMethodModal() {
+        const modalContent = Utils.DOM.create('div', {
+            className: 'payment-method-modal'
+        });
+
+        modalContent.innerHTML = `
+            <div class="payment-method-form">
+                <div class="form-group">
+                    <label class="form-label">Payment Method Type</label>
+                    <select class="form-input" id="paymentMethodType" onchange="window.walletManager.updatePaymentMethodFields()">
+                        <option value="">Select type...</option>
+                        <option value="credit_card">💳 Credit Card</option>
+                        <option value="paypal">🅿️ PayPal</option>
+                        <option value="bank_account">🏦 Bank Account</option>
+                        <option value="crypto">₿ Cryptocurrency</option>
+                    </select>
+                </div>
+                <div id="paymentMethodFields">
+                    <p class="form-help">Select a payment method type to continue.</p>
+                </div>
+            </div>
+        `;
+
+        Components.showModal({
+            title: '💳 Add Payment Method',
+            content: modalContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Add Payment Method',
+                    variant: 'primary',
+                    onClick: () => this.addPaymentMethod()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Update payment method fields based on selected type
+     */
+    updatePaymentMethodFields() {
+        const type = Utils.DOM.select('#paymentMethodType')?.value;
+        const fieldsContainer = Utils.DOM.select('#paymentMethodFields');
+        
+        if (!fieldsContainer || !type) return;
+
+        let fieldsHTML = '';
+
+        switch (type) {
+            case 'credit_card':
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Month</label>
+                            <select class="form-input" id="expiryMonth">
+                                ${Array.from({length: 12}, (_, i) => `<option value="${i + 1}">${String(i + 1).padStart(2, '0')}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expiry Year</label>
+                            <select class="form-input" id="expiryYear">
+                                ${Array.from({length: 10}, (_, i) => {
+                                    const year = new Date().getFullYear() + i;
+                                    return `<option value="${year}">${year}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'paypal':
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label class="form-label">PayPal Email</label>
+                        <input type="email" class="form-input" id="paypalEmail" placeholder="your@email.com">
+                    </div>
+                `;
+                break;
+            case 'bank_account':
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Bank Name</label>
+                        <input type="text" class="form-input" id="bankName" placeholder="Bank Name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account Number</label>
+                        <input type="text" class="form-input" id="accountNumber" placeholder="Account Number">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Routing Number</label>
+                        <input type="text" class="form-input" id="routingNumber" placeholder="Routing Number">
+                    </div>
+                `;
+                break;
+            case 'crypto':
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label class="form-label">Cryptocurrency</label>
+                        <select class="form-input" id="cryptoType">
+                            <option value="bitcoin">₿ Bitcoin</option>
+                            <option value="ethereum">Ξ Ethereum</option>
+                            <option value="usdt">₮ USDT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Wallet Address</label>
+                        <input type="text" class="form-input" id="walletAddress" placeholder="Wallet Address">
+                    </div>
+                `;
+                break;
+        }
+
+        fieldsContainer.innerHTML = fieldsHTML;
+    }
+
+    /**
+     * Add new payment method
+     */
+    async addPaymentMethod() {
+        const type = Utils.DOM.select('#paymentMethodType')?.value;
+        
+        if (!type) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Invalid Input',
+                message: 'Please select a payment method type.',
+                duration: 3000
+            });
+            return;
+        }
+
+        let paymentMethodData = {
+            id: `pm_${Date.now()}`,
+            type: type,
+            isDefault: false,
+            isVerified: false, // Would require verification in real system
+            addedAt: new Date().toISOString()
+        };
+
+        // Collect type-specific data
+        switch (type) {
+            case 'credit_card':
+                const cardNumber = Utils.DOM.select('#cardNumber')?.value;
+                const expiryMonth = Utils.DOM.select('#expiryMonth')?.value;
+                const expiryYear = Utils.DOM.select('#expiryYear')?.value;
+                
+                if (!cardNumber || cardNumber.length < 16) {
+                    Components.showNotification({
+                        type: 'error',
+                        title: 'Invalid Card Number',
+                        message: 'Please enter a valid card number.',
+                        duration: 3000
+                    });
+                    return;
+                }
+                
+                paymentMethodData = {
+                    ...paymentMethodData,
+                    provider: 'visa', // Would detect from card number
+                    lastFour: cardNumber.slice(-4),
+                    expiryMonth: parseInt(expiryMonth),
+                    expiryYear: parseInt(expiryYear)
+                };
+                break;
+                
+            case 'paypal':
+                const email = Utils.DOM.select('#paypalEmail')?.value;
+                if (!email || !email.includes('@')) {
+                    Components.showNotification({
+                        type: 'error',
+                        title: 'Invalid Email',
+                        message: 'Please enter a valid PayPal email.',
+                        duration: 3000
+                    });
+                    return;
+                }
+                
+                paymentMethodData = {
+                    ...paymentMethodData,
+                    provider: 'paypal',
+                    email: email
+                };
+                break;
+                
+            case 'bank_account':
+                const bankName = Utils.DOM.select('#bankName')?.value;
+                const accountNumber = Utils.DOM.select('#accountNumber')?.value;
+                const routingNumber = Utils.DOM.select('#routingNumber')?.value;
+                
+                if (!bankName || !accountNumber || !routingNumber) {
+                    Components.showNotification({
+                        type: 'error',
+                        title: 'Missing Information',
+                        message: 'Please fill in all bank account fields.',
+                        duration: 3000
+                    });
+                    return;
+                }
+                
+                paymentMethodData = {
+                    ...paymentMethodData,
+                    provider: 'bank_transfer',
+                    bankName: bankName,
+                    accountNumber: `****${accountNumber.slice(-4)}`,
+                    routingNumber: routingNumber
+                };
+                break;
+                
+            case 'crypto':
+                const cryptoType = Utils.DOM.select('#cryptoType')?.value;
+                const walletAddress = Utils.DOM.select('#walletAddress')?.value;
+                
+                if (!walletAddress || walletAddress.length < 20) {
+                    Components.showNotification({
+                        type: 'error',
+                        title: 'Invalid Wallet Address',
+                        message: 'Please enter a valid wallet address.',
+                        duration: 3000
+                    });
+                    return;
+                }
+                
+                paymentMethodData = {
+                    ...paymentMethodData,
+                    provider: cryptoType,
+                    walletAddress: walletAddress
+                };
+                break;
+        }
+
+        try {
+            // Close modal
+            Components.closeModal();
+
+            // Show processing notification
+            Components.showNotification({
+                type: 'info',
+                title: 'Adding Payment Method',
+                message: 'Your payment method is being added...',
+                duration: 2000
+            });
+
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // In real system, would verify payment method
+            paymentMethodData.isVerified = true; // Auto-verify for demo
+
+            // Add to state
+            const paymentMethods = AppState.getState('wallet.paymentMethods');
+            paymentMethods.set(paymentMethodData.id, paymentMethodData);
+            AppState.setState('wallet.paymentMethods', paymentMethods);
+
+            // Show success notification
+            Components.showNotification({
+                type: 'success',
+                title: 'Payment Method Added',
+                message: 'Your payment method has been added and verified.',
+                duration: 4000
+            });
+
+            // Refresh payment method dropdowns if they exist
+            this.populateWithdrawalPaymentMethods();
+
+        } catch (error) {
+            console.error('Failed to add payment method:', error);
+            Components.showNotification({
+                type: 'error',
+                title: 'Failed to Add Payment Method',
+                message: 'Failed to add payment method. Please try again.',
+                duration: 4000
+            });
+        }
+    }
+
+    /**
+     * Get payment method name for display
+     * @param {string} paymentMethodId - Payment method ID
+     * @returns {string} Display name
+     */
+    getPaymentMethodName(paymentMethodId) {
+        const paymentMethods = AppState.getState('wallet.paymentMethods');
+        const method = paymentMethods.get(paymentMethodId);
+        
+        if (!method) return 'Unknown Payment Method';
+        
+        switch (method.type) {
+            case 'credit_card':
+                return `Credit Card ending in ${method.lastFour}`;
+            case 'paypal':
+                return `PayPal (${method.email})`;
+            case 'bank_account':
+                return `${method.bankName} ${method.accountNumber}`;
+            case 'crypto':
+                return `${method.provider.toUpperCase()} Wallet`;
+            default:
+                return method.type;
+        }
+    }
+
+    /**
+     * Get payment method display name for dropdown
+     * @param {Object} method - Payment method object
+     * @returns {string} Display name
+     */
+    getPaymentMethodDisplayName(method) {
+        switch (method.type) {
+            case 'credit_card':
+                return `💳 ${method.provider.toUpperCase()} ****${method.lastFour}`;
+            case 'paypal':
+                return `🅿️ PayPal (${method.email})`;
+            case 'bank_account':
+                return `🏦 ${method.bankName} ${method.accountNumber}`;
+            case 'crypto':
+                return `₿ ${method.provider.toUpperCase()} Wallet`;
+            default:
+                return method.type;
+        }
+    }
+
+    /**
+     * Show withdrawal status tracking
+     */
+    showWithdrawalStatus() {
+        const transactions = Array.from(AppState.getState('wallet.transactions').values());
+        const withdrawals = transactions.filter(tx => tx.type === 'withdrawal');
+        
+        const modalContent = Utils.DOM.create('div', {
+            className: 'withdrawal-status-modal'
+        });
+
+        if (withdrawals.length === 0) {
+            modalContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💸</div>
+                    <h4 class="empty-state-title">No Withdrawal Requests</h4>
+                    <p class="empty-state-message">You haven't made any withdrawal requests yet.</p>
+                </div>
+            `;
+        } else {
+            const withdrawalList = Utils.DOM.create('div', {
+                className: 'withdrawal-list'
+            });
+
+            withdrawals.forEach(withdrawal => {
+                const item = Utils.DOM.create('div', {
+                    className: `withdrawal-item withdrawal-${withdrawal.status}`
+                });
+
+                const statusIcon = {
+                    pending: '⏳',
+                    approved: '✅',
+                    rejected: '❌',
+                    completed: '💰'
+                }[withdrawal.status] || '📋';
+
+                item.innerHTML = `
+                    <div class="withdrawal-header">
+                        <span class="withdrawal-status-icon">${statusIcon}</span>
+                        <span class="withdrawal-amount">${this.formatCurrency(Math.abs(withdrawal.amount), withdrawal.currency)}</span>
+                        <span class="withdrawal-date">${Utils.Format.timeAgo(withdrawal.createdAt)}</span>
+                    </div>
+                    <div class="withdrawal-details">
+                        <p class="withdrawal-description">${withdrawal.description}</p>
+                        <div class="withdrawal-status-badge">
+                            ${Components.createStatusBadge({
+                                status: withdrawal.status,
+                                text: withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)
+                            }).outerHTML}
+                        </div>
+                    </div>
+                    ${withdrawal.adminNotes ? `<div class="withdrawal-notes">Admin Notes: ${withdrawal.adminNotes}</div>` : ''}
+                `;
+
+                withdrawalList.appendChild(item);
+            });
+
+            modalContent.appendChild(withdrawalList);
+        }
+
+        Components.showModal({
+            title: '💸 Withdrawal Status',
+            content: modalContent,
+            size: 'large',
+            footer: [
+                Components.createButton({
+                    text: 'Close',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Filter transactions by type and currency
+     */
+    filterTransactions() {
+        const typeFilter = Utils.DOM.select('#transactionTypeFilter')?.value || 'all';
+        const currencyFilter = Utils.DOM.select('#transactionCurrencyFilter')?.value || 'all';
+        
+        const allTransactions = Array.from(AppState.getState('wallet.transactions').values());
+        
+        let filteredTransactions = allTransactions;
+        
+        // Filter by type
+        if (typeFilter !== 'all') {
+            filteredTransactions = filteredTransactions.filter(tx => tx.type === typeFilter);
+        }
+        
+        // Filter by currency
+        if (currencyFilter !== 'all') {
+            filteredTransactions = filteredTransactions.filter(tx => tx.currency === currencyFilter);
+        }
+        
+        // Sort by date (newest first)
+        filteredTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        // Update display
+        const transactionList = Utils.DOM.select('#transactionList');
+        if (!transactionList) return;
+        
+        Utils.DOM.empty(transactionList);
+        
+        if (filteredTransactions.length === 0) {
+            const emptyState = Utils.DOM.create('div', {
+                className: 'empty-state'
+            });
+
+            emptyState.innerHTML = `
+                <div class="empty-state-icon">🔍</div>
+                <h4 class="empty-state-title">No Matching Transactions</h4>
+                <p class="empty-state-message">No transactions match your current filter criteria.</p>
+            `;
+
+            transactionList.appendChild(emptyState);
+            return;
+        }
+
+        filteredTransactions.forEach(transaction => {
+            const transactionItem = this.createTransactionItem(transaction);
+            transactionList.appendChild(transactionItem);
+        });
     }
 }
 

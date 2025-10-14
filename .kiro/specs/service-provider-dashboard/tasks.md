@@ -224,7 +224,12 @@
     - Build transaction categorization and filtering system
     - _Requirements: 7.1, 7.4_
 
-  - [ ] 7.2 Build deposit and withdrawal system
+  - [x] 7.2 Build deposit and withdrawal system
+
+
+
+
+
     - Create deposit modal with payment method selection and amount input
     - Implement instant deposit processing with balance updates
     - Build withdrawal request system with admin approval workflow
