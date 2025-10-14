@@ -716,6 +716,11 @@ class DashboardApp {
             return this.createServicesView();
         }
         
+        // Handle raids view with actual implementation
+        if (item === 'raids' && (role === 'advertiser' || role === 'team_advertiser')) {
+            return this.createRaidsView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -764,6 +769,42 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Service Management',
                 content: '<p>Service management is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create raids view
+     */
+    createRaidsView() {
+        const container = Utils.DOM.create('div', {
+            className: 'raids-view'
+        });
+
+        // Initialize RaidBookingManager if not already done
+        if (typeof RaidBookingManager !== 'undefined' && RaidBookingManager_Instance) {
+            // Initialize and render raid booking
+            RaidBookingManager_Instance.init();
+            setTimeout(() => {
+                RaidBookingManager_Instance.renderRaidBooking();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Raid Booking',
+                content: '<div class="loading-spinner"></div><p>Loading raid booking system...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if RaidBookingManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Raid Booking',
+                content: '<p>Raid booking system is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);

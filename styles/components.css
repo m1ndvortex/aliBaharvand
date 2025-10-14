@@ -1072,3 +1072,682 @@ Service Management Components */
     gap: var(--spacing-sm);
     justify-content: center;
 }
+/* Ra
+id Booking Styles */
+.raid-booking-container {
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.raid-booking-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-lg) 0;
+}
+
+.view-switcher {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* Raid List View */
+.raid-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.raid-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.raids-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+/* Raid Card */
+.raid-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.raid-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.raid-card.mythic {
+    border-left: 4px solid #f44336;
+}
+
+.raid-card.heroic {
+    border-left: 4px solid #ff9800;
+}
+
+.raid-card.normal {
+    border-left: 4px solid #4caf50;
+}
+
+.raid-card-header {
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.raid-card-content {
+    padding: var(--spacing-lg);
+}
+
+.raid-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+    line-height: 1.3;
+}
+
+.raid-description {
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-md) 0;
+    line-height: 1.5;
+}
+
+.raid-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.detail-icon {
+    font-size: 1rem;
+}
+
+.detail-text {
+    color: var(--text-primary);
+}
+
+.raid-pricing {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.price-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-medium);
+}
+
+.price-item.gold {
+    color: #ffd700;
+}
+
+.price-item.usd {
+    color: #4caf50;
+}
+
+.price-item.toman {
+    color: #ff9800;
+}
+
+.raid-requirements {
+    padding: var(--spacing-sm);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+    font-size: 0.9rem;
+}
+
+.raid-requirements strong {
+    color: var(--text-primary);
+}
+
+.raid-requirements p {
+    margin: var(--spacing-xs) 0 0 0;
+    color: var(--text-secondary);
+}
+
+.raid-card-actions {
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-top: 1px solid var(--border-primary);
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+/* Calendar View */
+.raid-calendar-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.calendar-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.calendar-nav {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.calendar-grid {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    overflow: hidden;
+}
+
+.calendar-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.calendar-day-header {
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    border-right: 1px solid var(--border-primary);
+}
+
+.calendar-day-header:last-child {
+    border-right: none;
+}
+
+.calendar-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day {
+    min-height: 120px;
+    padding: var(--spacing-sm);
+    border-right: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border-primary);
+    position: relative;
+    background-color: var(--bg-secondary);
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.calendar-day.other-month {
+    background-color: var(--bg-tertiary);
+    opacity: 0.5;
+}
+
+.day-number {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.day-raids {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.raid-event {
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.raid-event:hover {
+    transform: scale(1.02);
+}
+
+.raid-event.mythic {
+    background-color: rgba(244, 67, 54, 0.2);
+    border: 1px solid #f44336;
+    color: #f44336;
+}
+
+.raid-event.heroic {
+    background-color: rgba(255, 152, 0, 0.2);
+    border: 1px solid #ff9800;
+    color: #ff9800;
+}
+
+.raid-event.normal {
+    background-color: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+}
+
+.raid-event-title {
+    display: block;
+    font-weight: var(--font-weight-bold);
+}
+
+.raid-event-slots {
+    display: block;
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.calendar-legend {
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.calendar-legend h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
+}
+
+.legend-items {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+}
+
+/* Management View */
+.raid-management-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.management-header {
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.management-header h2 {
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--text-primary);
+}
+
+.management-header p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.bookings-table {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    overflow: hidden;
+}
+
+.booking-raid-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.booking-raid-info strong {
+    color: var(--text-primary);
+}
+
+.raid-difficulty {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.raid-difficulty.mythic {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+}
+
+.raid-difficulty.heroic {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.raid-difficulty.normal {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.buyer-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.buyer-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.buyer-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.booking-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* Booking Form */
+.booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.raid-summary {
+    padding: var(--spacing-lg);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.raid-summary h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.summary-item {
+    color: var(--text-secondary);
+}
+
+.summary-item strong {
+    color: var(--text-primary);
+}
+
+/* Raid Details Modal */
+.raid-details-content {
+    padding: var(--spacing-md);
+}
+
+.raid-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.detail-section {
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.detail-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-section h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.detail-section .detail-item {
+    margin-bottom: var(--spacing-sm);
+}
+
+.pricing-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.pricing-grid .price-item {
+    justify-content: flex-start;
+}
+
+/* Booking Details Modal */
+.booking-details-content {
+    padding: var(--spacing-md);
+}
+
+.booking-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.info-section {
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+}
+
+.info-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-section h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.info-item {
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-secondary);
+}
+
+.info-item strong {
+    color: var(--text-primary);
+}
+
+.buyer-info-detailed {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+}
+
+.buyer-details {
+    flex: 1;
+}
+
+.status-badge {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+}
+
+.status-badge.confirmed {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.status-badge.pending {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.status-badge.cancelled {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+}
+
+/* Cancel Booking Modal */
+.cancel-booking-content {
+    padding: var(--spacing-md);
+}
+
+.booking-details {
+    padding: var(--spacing-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    margin: var(--spacing-md) 0;
+    line-height: 1.6;
+}
+
+.warning-text {
+    color: #f44336;
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--spacing-md);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+    margin: var(--spacing-sm) 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .raid-booking-container {
+        padding: var(--spacing-md);
+    }
+    
+    .raids-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .raid-filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .view-switcher {
+        justify-content: center;
+    }
+    
+    .calendar-days-grid .calendar-day {
+        min-height: 80px;
+    }
+    
+    .raid-details-grid,
+    .booking-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .legend-items {
+        justify-content: center;
+    }
+    
+    .buyer-info-detailed {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .raid-card-actions {
+        flex-direction: column;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+    }
+    
+    .calendar-nav {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .raid-pricing {
+        flex-direction: column;
+    }
+}

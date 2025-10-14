@@ -78,7 +78,12 @@
     - Implement service deletion with confirmation dialogs
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-  - [ ] 4.2 Build raid booking system
+  - [x] 4.2 Build raid booking system
+
+
+
+
+
     - Create raid listing component displaying admin-created raids
     - Implement raid booking interface for assigning buyers to raid slots
     - Build raid booking management with status tracking and participant lists
@@ -86,6 +91,7 @@
     - _Requirements: 2.7_
 
   - [ ] 4.3 Implement order management system
+
     - Create orders table with filtering, sorting, and status-based views
     - Build booster assignment interface with available booster selection
     - Implement evidence review modal with image display and approval/rejection controls

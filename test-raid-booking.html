@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raid Booking Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #2c2f33;
+            color: #ffffff;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #36393f;
+            border-radius: 8px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #4caf50;
+            color: white;
+        }
+        .error {
+            background-color: #f44336;
+            color: white;
+        }
+        .info {
+            background-color: #2196f3;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #7289da;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #5b6eae;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🏰 Raid Booking System Test</h1>
+        
+        <div id="test-results"></div>
+        
+        <button onclick="runTests()">Run Tests</button>
+        <button onclick="testRaidBookingManager()">Test RaidBookingManager</button>
+        <button onclick="testMockData()">Test Mock Data</button>
+    </div>
+
+    <!-- Load required scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/raidBookingManager.js"></script>
+
+    <script>
+        function addTestResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.textContent = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+
+        function testMockData() {
+            clearResults();
+            addTestResult('Testing Mock Data...', 'info');
+            
+            try {
+                // Test if MockData is loaded
+                if (typeof MockData === 'undefined') {
+                    addTestResult('❌ MockData is not loaded', 'error');
+                    return;
+                }
+                addTestResult('✅ MockData is loaded', 'success');
+                
+                // Test adminRaids
+                if (!MockData.adminRaids) {
+                    addTestResult('❌ adminRaids not found in MockData', 'error');
+                    return;
+                }
+                addTestResult(`✅ Found ${MockData.adminRaids.length} admin raids`, 'success');
+                
+                // Test raid structure
+                MockData.adminRaids.forEach((raid, index) => {
+                    if (raid.id && raid.title && raid.difficulty && raid.pricePerSlot) {
+                        addTestResult(`✅ Raid ${index + 1}: ${raid.title} - Structure OK`, 'success');
+                    } else {
+                        addTestResult(`❌ Raid ${index + 1}: Missing required fields`, 'error');
+                    }
+                });
+                
+                // Test buyers
+                if (MockData.buyers && MockData.buyers.length > 0) {
+                    addTestResult(`✅ Found ${MockData.buyers.length} buyers`, 'success');
+                } else {
+                    addTestResult('❌ No buyers found', 'error');
+                }
+                
+            } catch (error) {
+                addTestResult(`❌ Error testing mock data: ${error.message}`, 'error');
+            }
+        }
+
+        function testRaidBookingManager() {
+            clearResults();
+            addTestResult('Testing RaidBookingManager...', 'info');
+            
+            try {
+                // Test if RaidBookingManager is loaded
+                if (typeof RaidBookingManager === 'undefined') {
+                    addTestResult('❌ RaidBookingManager class is not loaded', 'error');
+                    return;
+                }
+                addTestResult('✅ RaidBookingManager class is loaded', 'success');
+                
+                // Test if instance exists
+                if (typeof RaidBookingManager_Instance === 'undefined') {
+                    addTestResult('❌ RaidBookingManager_Instance is not created', 'error');
+                    return;
+                }
+                addTestResult('✅ RaidBookingManager_Instance exists', 'success');
+                
+                // Test initialization
+                RaidBookingManager_Instance.init();
+                addTestResult('✅ RaidBookingManager initialized', 'success');
+                
+                // Test methods exist
+                const methods = ['renderRaidBooking', 'createRaidListView', 'createRaidCalendarView', 'createRaidManagementView'];
+                methods.forEach(method => {
+                    if (typeof RaidBookingManager_Instance[method] === 'function') {
+                        addTestResult(`✅ Method ${method} exists`, 'success');
+                    } else {
+                        addTestResult(`❌ Method ${method} missing`, 'error');
+                    }
+                });
+                
+                // Test getting available raids
+                const raids = RaidBookingManager_Instance.getAvailableRaids();
+                addTestResult(`✅ Found ${raids.length} available raids`, 'success');
+                
+            } catch (error) {
+                addTestResult(`❌ Error testing RaidBookingManager: ${error.message}`, 'error');
+            }
+        }
+
+        function runTests() {
+            clearResults();
+            addTestResult('Running all tests...', 'info');
+            
+            setTimeout(() => {
+                testMockData();
+                setTimeout(() => {
+                    testRaidBookingManager();
+                }, 500);
+            }, 100);
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+</body>
+</html>
