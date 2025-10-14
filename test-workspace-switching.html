@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace Switching Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #2c2f33;
+            color: #ffffff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #36393f;
+        }
+        .test-button {
+            background-color: #5865f2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background-color: #4752c4;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #57f287; color: #000; }
+        .error { background-color: #ed4245; }
+        .info { background-color: #5865f2; }
+    </style>
+</head>
+<body>
+    <h1>Workspace Switching Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual Tests</h2>
+        <button class="test-button" onclick="testWorkspaceSwitching()">Test Workspace Switching</button>
+        <button class="test-button" onclick="testTeamCreation()">Test Team Creation</button>
+        <button class="test-button" onclick="testWorkspaceIndicators()">Test Workspace Indicators</button>
+        <button class="test-button" onclick="testNavigationFiltering()">Test Navigation Filtering</button>
+    </div>
+
+    <script>
+        function addTestResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+        }
+
+        function testWorkspaceSwitching() {
+            addTestResult('Testing workspace switching functionality...', 'info');
+            
+            try {
+                // Test 1: Check if workspace switcher exists
+                const workspaceSwitcher = document.querySelector('.workspace-switcher');
+                if (workspaceSwitcher) {
+                    addTestResult('✓ Workspace switcher component found', 'success');
+                } else {
+                    addTestResult('✗ Workspace switcher component not found', 'error');
+                    return;
+                }
+
+                // Test 2: Check workspace buttons
+                const workspaceButtons = document.querySelectorAll('.workspace-btn');
+                if (workspaceButtons.length >= 2) {
+                    addTestResult(`✓ Found ${workspaceButtons.length} workspace buttons`, 'success');
+                } else {
+                    addTestResult('✗ Insufficient workspace buttons found', 'error');
+                }
+
+                // Test 3: Check for visual indicators
+                const indicators = document.querySelectorAll('.workspace-indicator, .workspace-badge');
+                if (indicators.length > 0) {
+                    addTestResult(`✓ Found ${indicators.length} workspace indicators`, 'success');
+                } else {
+                    addTestResult('✗ No workspace indicators found', 'error');
+                }
+
+            } catch (error) {
+                addTestResult(`✗ Error testing workspace switching: ${error.message}`, 'error');
+            }
+        }
+
+        function testTeamCreation() {
+            addTestResult('Testing team creation functionality...', 'info');
+            
+            try {
+                // Check if team creation methods exist
+                if (typeof window.app !== 'undefined' && window.app.createDemoTeam) {
+                    addTestResult('✓ Team creation method found', 'success');
+                } else {
+                    addTestResult('✗ Team creation method not found', 'error');
+                }
+
+                // Check if team selection modal method exists
+                if (typeof window.app !== 'undefined' && window.app.showTeamSelectionModal) {
+                    addTestResult('✓ Team selection modal method found', 'success');
+                } else {
+                    addTestResult('✗ Team selection modal method not found', 'error');
+                }
+
+            } catch (error) {
+                addTestResult(`✗ Error testing team creation: ${error.message}`, 'error');
+            }
+        }
+
+        function testWorkspaceIndicators() {
+            addTestResult('Testing workspace indicators...', 'info');
+            
+            try {
+                // Check CSS classes for workspace indicators
+                const styles = document.styleSheets;
+                let foundWorkspaceStyles = false;
+                
+                for (let i = 0; i < styles.length; i++) {
+                    try {
+                        const rules = styles[i].cssRules || styles[i].rules;
+                        for (let j = 0; j < rules.length; j++) {
+                            if (rules[j].selectorText && rules[j].selectorText.includes('workspace-indicator')) {
+                                foundWorkspaceStyles = true;
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        // Cross-origin or other CSS access issues
+                    }
+                }
+
+                if (foundWorkspaceStyles) {
+                    addTestResult('✓ Workspace indicator styles found', 'success');
+                } else {
+                    addTestResult('✗ Workspace indicator styles not found', 'error');
+                }
+
+            } catch (error) {
+                addTestResult(`✗ Error testing workspace indicators: ${error.message}`, 'error');
+            }
+        }
+
+        function testNavigationFiltering() {
+            addTestResult('Testing navigation filtering...', 'info');
+            
+            try {
+                // Check if navigation methods exist
+                if (typeof window.app !== 'undefined' && window.app.getNavigationItemsForRole) {
+                    addTestResult('✓ Navigation filtering method found', 'success');
+                } else {
+                    addTestResult('✗ Navigation filtering method not found', 'error');
+                }
+
+                // Check if workspace data filtering methods exist
+                if (typeof window.app !== 'undefined' && window.app.filterServicesForWorkspace) {
+                    addTestResult('✓ Service filtering method found', 'success');
+                } else {
+                    addTestResult('✗ Service filtering method not found', 'error');
+                }
+
+                if (typeof window.app !== 'undefined' && window.app.filterOrdersForWorkspace) {
+                    addTestResult('✓ Order filtering method found', 'success');
+                } else {
+                    addTestResult('✗ Order filtering method not found', 'error');
+                }
+
+            } catch (error) {
+                addTestResult(`✗ Error testing navigation filtering: ${error.message}`, 'error');
+            }
+        }
+
+        // Run initial tests when page loads
+        window.addEventListener('load', () => {
+            addTestResult('Starting workspace switching tests...', 'info');
+            setTimeout(() => {
+                testWorkspaceSwitching();
+                testTeamCreation();
+                testWorkspaceIndicators();
+                testNavigationFiltering();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

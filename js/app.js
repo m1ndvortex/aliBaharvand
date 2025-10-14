@@ -314,67 +314,338 @@ class DashboardApp {
             // Check if user has teams
             const teams = AppState.getState('teams');
             if (!teams || teams.size === 0) {
-                // Create a mock team for demonstration
-                const mockTeam = {
-                    id: 'team_demo_123',
-                    name: 'Elite Boosters',
-                    description: 'Professional WoW boosting team',
-                    leaderId: AppState.getState('user.id'),
-                    members: [
-                        {
-                            userId: AppState.getState('user.id'),
-                            role: 'leader',
-                            status: 'active',
-                            joinedAt: new Date().toISOString()
-                        }
-                    ],
-                    isActive: true,
-                    createdAt: new Date().toISOString()
-                };
-                
-                // Add mock team to state
-                const teamsMap = new Map();
-                teamsMap.set(mockTeam.id, mockTeam);
-                AppState.setState('teams', teamsMap);
-                
-                // Switch to the mock team
-                AppState.switchWorkspace('team', mockTeam.id, mockTeam.name);
-                
-                Components.showNotification({
-                    type: 'info',
-                    title: 'Demo Team Created',
-                    message: 'Created a demo team for workspace switching demonstration.',
-                    duration: 3000
-                });
+                // Show team selection modal if multiple teams or create team option
+                this.showTeamSelectionModal();
             } else {
-                // Switch to first team (in real app, might show team selector)
-                const firstTeam = Array.from(teams.values())[0];
-                AppState.switchWorkspace('team', firstTeam.id, firstTeam.name);
-                
-                Components.showNotification({
-                    type: 'success',
-                    title: 'Workspace Switched',
-                    message: `Switched to team workspace: ${firstTeam.name}`,
-                    duration: 2000
-                });
+                // If only one team, switch to it directly
+                const teamArray = Array.from(teams.values());
+                if (teamArray.length === 1) {
+                    const team = teamArray[0];
+                    this.switchToTeamWorkspace(team);
+                } else {
+                    // Multiple teams - show selection modal
+                    this.showTeamSelectionModal();
+                }
             }
         } else {
             // Switch to personal workspace
-            const userId = AppState.getState('user.id');
-            AppState.switchWorkspace('personal', userId, null);
-            
-            Components.showNotification({
-                type: 'success',
-                title: 'Workspace Switched',
-                message: 'Switched to personal workspace',
-                duration: 2000
-            });
+            this.switchToPersonalWorkspace();
         }
         
         // Hide loading state
         setTimeout(() => {
             this.hideLoading('workspace');
         }, 300);
+    }
+
+    /**
+     * Switch to personal workspace
+     */
+    switchToPersonalWorkspace() {
+        const userId = AppState.getState('user.id');
+        AppState.switchWorkspace('personal', userId, null);
+        
+        // Update workspace-specific data
+        this.updateWorkspaceData('personal');
+        
+        Components.showNotification({
+            type: 'success',
+            title: 'Workspace Switched',
+            message: 'Switched to personal workspace',
+            duration: 2000
+        });
+    }
+
+    /**
+     * Switch to team workspace
+     */
+    switchToTeamWorkspace(team) {
+        AppState.switchWorkspace('team', team.id, team.name);
+        
+        // Update workspace-specific data
+        this.updateWorkspaceData('team', team);
+        
+        Components.showNotification({
+            type: 'success',
+            title: 'Workspace Switched',
+            message: `Switched to team workspace: ${team.name}`,
+            duration: 2000
+        });
+    }
+
+    /**
+     * Show team selection modal
+     */
+    showTeamSelectionModal() {
+        const teams = AppState.getState('teams');
+        const teamArray = Array.from(teams.values());
+        
+        if (teamArray.length === 0) {
+            // No teams - offer to create one
+            this.showCreateTeamForWorkspaceModal();
+            return;
+        }
+
+        const modalContent = Utils.DOM.create('div', {
+            className: 'team-selection-modal'
+        });
+
+        const title = Utils.DOM.create('h3', {
+            className: 'modal-section-title'
+        }, 'Select Team Workspace');
+
+        const description = Utils.DOM.create('p', {
+            className: 'text-secondary'
+        }, 'Choose which team workspace you want to switch to:');
+
+        const teamList = Utils.DOM.create('div', {
+            className: 'team-selection-list'
+        });
+
+        teamArray.forEach(team => {
+            const teamOption = Utils.DOM.create('div', {
+                className: 'team-option',
+                onclick: () => {
+                    Components.closeModal();
+                    this.switchToTeamWorkspace(team);
+                }
+            });
+
+            teamOption.innerHTML = `
+                <div class="team-option-info">
+                    <h4 class="team-option-name">${team.name}</h4>
+                    <p class="team-option-description">${team.description || 'No description'}</p>
+                    <div class="team-option-stats">
+                        <span class="stat-item">${team.members?.length || 0} members</span>
+                        <span class="stat-item">Created ${this.formatDate(team.createdAt)}</span>
+                    </div>
+                </div>
+                <div class="team-option-action">
+                    <span class="btn-icon">→</span>
+                </div>
+            `;
+
+            teamList.appendChild(teamOption);
+        });
+
+        modalContent.appendChild(title);
+        modalContent.appendChild(description);
+        modalContent.appendChild(teamList);
+
+        Components.showModal({
+            title: 'Switch to Team Workspace',
+            content: modalContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Create New Team',
+                    variant: 'primary',
+                    onClick: () => {
+                        Components.closeModal();
+                        this.showCreateTeamForWorkspaceModal();
+                    }
+                })
+            ]
+        });
+    }
+
+    /**
+     * Show create team modal for workspace switching
+     */
+    showCreateTeamForWorkspaceModal() {
+        const modalContent = Utils.DOM.create('div', {
+            className: 'create-team-workspace-modal'
+        });
+
+        modalContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🏢</div>
+                <h3 class="empty-state-title">No Teams Available</h3>
+                <p class="empty-state-message">
+                    You need to create or join a team to access team workspace features.
+                    Team workspaces allow collaborative service management with shared earnings.
+                </p>
+            </div>
+            <div class="team-benefits">
+                <h4>Team Workspace Benefits:</h4>
+                <ul>
+                    <li>Collaborative service creation and management</li>
+                    <li>Shared order processing and booster assignment</li>
+                    <li>Centralized earnings management</li>
+                    <li>Team analytics and performance tracking</li>
+                    <li>Activity logging and member coordination</li>
+                </ul>
+            </div>
+        `;
+
+        Components.showModal({
+            title: 'Create Team for Workspace',
+            content: modalContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Create Demo Team',
+                    variant: 'primary',
+                    onClick: () => {
+                        Components.closeModal();
+                        this.createDemoTeam();
+                    }
+                })
+            ]
+        });
+    }
+
+    /**
+     * Create demo team for workspace switching
+     */
+    createDemoTeam() {
+        const mockTeam = {
+            id: 'team_demo_' + Date.now(),
+            name: 'Elite Boosters',
+            description: 'Professional WoW boosting team for demonstration',
+            leaderId: AppState.getState('user.id'),
+            members: [
+                {
+                    userId: AppState.getState('user.id'),
+                    discordUsername: AppState.getState('user.discordUsername'),
+                    discordAvatarUrl: AppState.getState('user.discordAvatarUrl'),
+                    role: 'leader',
+                    status: 'active',
+                    joinedAt: new Date().toISOString(),
+                    contributionStats: {
+                        servicesCreated: 5,
+                        ordersGenerated: 23,
+                        totalEarnings: 1250.00
+                    }
+                }
+            ],
+            settings: {
+                autoApproveMembers: false,
+                allowMemberInvites: true,
+                requireApprovalForServices: false,
+                earningsDistribution: 'leader_wallet'
+            },
+            stats: {
+                totalMembers: 1,
+                totalServices: 5,
+                totalOrders: 23,
+                totalEarnings: 1250.00
+            },
+            isActive: true,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Add mock team to state
+        const teams = AppState.getState('teams') || new Map();
+        teams.set(mockTeam.id, mockTeam);
+        AppState.setState('teams', teams);
+        
+        // Switch to the new team workspace
+        this.switchToTeamWorkspace(mockTeam);
+        
+        Components.showNotification({
+            type: 'success',
+            title: 'Demo Team Created',
+            message: 'Created demo team "Elite Boosters" and switched to team workspace.',
+            duration: 3000
+        });
+    }
+
+    /**
+     * Update workspace-specific data
+     */
+    updateWorkspaceData(workspaceType, team = null) {
+        // Filter services based on workspace
+        this.filterServicesForWorkspace(workspaceType, team);
+        
+        // Filter orders based on workspace
+        this.filterOrdersForWorkspace(workspaceType, team);
+        
+        // Update navigation context
+        this.updateNavigationForWorkspace(workspaceType, team);
+    }
+
+    /**
+     * Filter services for current workspace
+     */
+    filterServicesForWorkspace(workspaceType, team = null) {
+        const allServices = MockDataAPI.getAllServices();
+        let filteredServices;
+
+        if (workspaceType === 'team' && team) {
+            // Show team services (services created by team members)
+            filteredServices = allServices.filter(service => 
+                service.workspaceType === 'team' && service.workspaceOwnerId === team.id
+            );
+        } else {
+            // Show personal services
+            const userId = AppState.getState('user.id');
+            filteredServices = allServices.filter(service => 
+                service.workspaceType === 'personal' && service.createdBy === userId
+            );
+        }
+
+        // Update services in state
+        const servicesMap = new Map();
+        filteredServices.forEach(service => {
+            servicesMap.set(service.id, service);
+        });
+        AppState.setState('services', servicesMap);
+    }
+
+    /**
+     * Filter orders for current workspace
+     */
+    filterOrdersForWorkspace(workspaceType, team = null) {
+        const allOrders = MockDataAPI.getAllOrders();
+        let filteredOrders;
+
+        if (workspaceType === 'team' && team) {
+            // Show team orders (orders for team services)
+            const teamServices = MockDataAPI.getAllServices().filter(service => 
+                service.workspaceType === 'team' && service.workspaceOwnerId === team.id
+            );
+            const teamServiceIds = teamServices.map(service => service.id);
+            
+            filteredOrders = allOrders.filter(order => 
+                teamServiceIds.includes(order.serviceId)
+            );
+        } else {
+            // Show personal orders
+            const userId = AppState.getState('user.id');
+            filteredOrders = allOrders.filter(order => 
+                order.advertiserId === userId
+            );
+        }
+
+        // Update orders in state
+        const ordersMap = new Map();
+        filteredOrders.forEach(order => {
+            ordersMap.set(order.id, order);
+        });
+        AppState.setState('orders', ordersMap);
+    }
+
+    /**
+     * Update navigation for workspace context
+     */
+    updateNavigationForWorkspace(workspaceType, team = null) {
+        // This will trigger sidebar re-render through state subscription
+        AppState.setState('ui.workspaceContext', {
+            type: workspaceType,
+            team: team,
+            lastUpdated: new Date().toISOString()
+        });
     }
 
     /**
@@ -526,9 +797,12 @@ class DashboardApp {
         const activeRole = AppState.getState('ui.activeRole');
         const workspaceContext = AppState.getWorkspaceContext();
         
-        // Update button states
+        // Update button states and content
         workspaceBtns.forEach(btn => {
             const workspace = btn.dataset.workspace;
+            
+            // Clear existing content
+            Utils.DOM.empty(btn);
             
             if (workspace === activeWorkspace) {
                 Utils.DOM.addClass(btn, 'active');
@@ -545,13 +819,59 @@ class DashboardApp {
                 Utils.DOM.removeClass(btn, 'loading');
             }
             
-            // Update button text for team workspace
-            if (workspace === 'team' && workspaceContext.type === 'team' && workspaceContext.name) {
-                btn.textContent = `Team: ${workspaceContext.name}`;
-            } else if (workspace === 'team') {
-                btn.textContent = 'Team Workspace';
+            // Create button content with icons and indicators
+            if (workspace === 'team') {
+                const teamIcon = Utils.DOM.create('span', {
+                    className: 'workspace-icon'
+                }, '🏢');
+                
+                const teamText = Utils.DOM.create('span', {
+                    className: 'workspace-text'
+                });
+                
+                if (workspaceContext.type === 'team' && workspaceContext.name) {
+                    teamText.textContent = workspaceContext.name;
+                    
+                    // Add team indicator
+                    const teamIndicator = Utils.DOM.create('span', {
+                        className: 'workspace-indicator team-indicator'
+                    }, '●');
+                    btn.appendChild(teamIcon);
+                    btn.appendChild(teamText);
+                    btn.appendChild(teamIndicator);
+                } else {
+                    teamText.textContent = 'Team Workspace';
+                    btn.appendChild(teamIcon);
+                    btn.appendChild(teamText);
+                }
+                
+                // Add team count if available
+                const teams = AppState.getState('teams');
+                if (teams && teams.size > 0) {
+                    const teamCount = Utils.DOM.create('span', {
+                        className: 'workspace-badge'
+                    }, teams.size.toString());
+                    btn.appendChild(teamCount);
+                }
+                
             } else if (workspace === 'personal') {
-                btn.textContent = 'Personal Workspace';
+                const personalIcon = Utils.DOM.create('span', {
+                    className: 'workspace-icon'
+                }, '👤');
+                
+                const personalText = Utils.DOM.create('span', {
+                    className: 'workspace-text'
+                }, 'Personal');
+                
+                btn.appendChild(personalIcon);
+                btn.appendChild(personalText);
+                
+                if (activeWorkspace === 'personal') {
+                    const personalIndicator = Utils.DOM.create('span', {
+                        className: 'workspace-indicator personal-indicator'
+                    }, '●');
+                    btn.appendChild(personalIndicator);
+                }
             }
         });
         
@@ -559,10 +879,248 @@ class DashboardApp {
         if (activeRole === 'team_advertiser' && AppState.hasRole('team_advertiser')) {
             Utils.DOM.show(workspaceSwitcher);
             workspaceSwitcher.setAttribute('aria-hidden', 'false');
+            
+            // Add workspace context banner
+            this.updateWorkspaceContextBanner();
         } else {
             Utils.DOM.hide(workspaceSwitcher);
             workspaceSwitcher.setAttribute('aria-hidden', 'true');
+            
+            // Remove workspace context banner
+            this.removeWorkspaceContextBanner();
         }
+    }
+
+    /**
+     * Update workspace context banner
+     */
+    updateWorkspaceContextBanner() {
+        const workspaceContext = AppState.getWorkspaceContext();
+        const contentArea = Utils.DOM.select('.content-area');
+        
+        // Remove existing banner
+        const existingBanner = Utils.DOM.select('.workspace-context-banner');
+        if (existingBanner) {
+            existingBanner.remove();
+        }
+        
+        // Create new banner
+        const banner = Utils.DOM.create('div', {
+            className: 'workspace-context-banner'
+        });
+        
+        if (workspaceContext.type === 'team' && workspaceContext.name) {
+            banner.innerHTML = `
+                <div class="banner-content">
+                    <div class="banner-icon">🏢</div>
+                    <div class="banner-info">
+                        <div class="banner-title">Team Workspace</div>
+                        <div class="banner-subtitle">${workspaceContext.name}</div>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="banner-action-btn" onclick="app.showTeamQuickActions()" title="Team Actions">
+                            ⚙️
+                        </button>
+                        <button class="banner-action-btn" onclick="app.switchToPersonalWorkspace()" title="Switch to Personal">
+                            👤
+                        </button>
+                    </div>
+                </div>
+            `;
+            Utils.DOM.addClass(banner, 'team-banner');
+        } else {
+            banner.innerHTML = `
+                <div class="banner-content">
+                    <div class="banner-icon">👤</div>
+                    <div class="banner-info">
+                        <div class="banner-title">Personal Workspace</div>
+                        <div class="banner-subtitle">Individual service management</div>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="banner-action-btn" onclick="app.showTeamSelectionModal()" title="Switch to Team">
+                            🏢
+                        </button>
+                    </div>
+                </div>
+            `;
+            Utils.DOM.addClass(banner, 'personal-banner');
+        }
+        
+        // Insert banner at the top of content area
+        contentArea.insertBefore(banner, contentArea.firstChild);
+    }
+
+    /**
+     * Remove workspace context banner
+     */
+    removeWorkspaceContextBanner() {
+        const existingBanner = Utils.DOM.select('.workspace-context-banner');
+        if (existingBanner) {
+            existingBanner.remove();
+        }
+    }
+
+    /**
+     * Show team quick actions menu
+     */
+    showTeamQuickActions() {
+        const workspaceContext = AppState.getWorkspaceContext();
+        const teams = AppState.getState('teams');
+        const currentTeam = teams?.get(workspaceContext.id);
+        
+        if (!currentTeam) return;
+        
+        const modalContent = Utils.DOM.create('div', {
+            className: 'team-quick-actions'
+        });
+        
+        modalContent.innerHTML = `
+            <div class="quick-actions-header">
+                <h3>Team: ${currentTeam.name}</h3>
+                <p class="text-secondary">Quick actions for team workspace</p>
+            </div>
+            <div class="quick-actions-grid">
+                <button class="quick-action-item" onclick="Components.closeModal(); app.navigateToTeamManagement();">
+                    <div class="action-icon">👥</div>
+                    <div class="action-label">Manage Team</div>
+                    <div class="action-description">Members, settings, and permissions</div>
+                </button>
+                <button class="quick-action-item" onclick="Components.closeModal(); app.navigateToTeamAnalytics();">
+                    <div class="action-icon">📊</div>
+                    <div class="action-label">Team Analytics</div>
+                    <div class="action-description">Performance and earnings data</div>
+                </button>
+                <button class="quick-action-item" onclick="Components.closeModal(); app.navigateToTeamServices();">
+                    <div class="action-icon">📝</div>
+                    <div class="action-label">Team Services</div>
+                    <div class="action-description">Collaborative service management</div>
+                </button>
+                <button class="quick-action-item" onclick="Components.closeModal(); app.switchToPersonalWorkspace();">
+                    <div class="action-icon">👤</div>
+                    <div class="action-label">Switch to Personal</div>
+                    <div class="action-description">Return to personal workspace</div>
+                </button>
+            </div>
+        `;
+        
+        Components.showModal({
+            title: 'Team Workspace Actions',
+            content: modalContent,
+            size: 'medium',
+            footer: [
+                Components.createButton({
+                    text: 'Close',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Create workspace indicator for sidebar
+     */
+    createWorkspaceIndicator(workspaceContext) {
+        const workspaceIndicator = Utils.DOM.create('div', {
+            className: 'workspace-indicator'
+        });
+        
+        if (workspaceContext.type === 'team' && workspaceContext.name) {
+            const indicatorIcon = Utils.DOM.create('span', {
+                className: 'indicator-icon team-icon'
+            }, '🏢');
+            
+            const indicatorContent = Utils.DOM.create('div', {
+                className: 'indicator-content'
+            });
+            
+            const indicatorTitle = Utils.DOM.create('span', {
+                className: 'indicator-title'
+            }, 'Team Workspace');
+            
+            const indicatorText = Utils.DOM.create('span', {
+                className: 'indicator-text'
+            }, workspaceContext.name);
+            
+            indicatorContent.appendChild(indicatorTitle);
+            indicatorContent.appendChild(indicatorText);
+            
+            const indicatorActions = Utils.DOM.create('div', {
+                className: 'indicator-actions'
+            });
+            
+            const switchBtn = Utils.DOM.create('button', {
+                className: 'indicator-action-btn',
+                title: 'Switch to Personal Workspace',
+                onclick: () => this.switchToPersonalWorkspace()
+            }, '👤');
+            
+            indicatorActions.appendChild(switchBtn);
+            
+            workspaceIndicator.appendChild(indicatorIcon);
+            workspaceIndicator.appendChild(indicatorContent);
+            workspaceIndicator.appendChild(indicatorActions);
+            
+            Utils.DOM.addClass(workspaceIndicator, 'team-workspace');
+            
+        } else {
+            const indicatorIcon = Utils.DOM.create('span', {
+                className: 'indicator-icon personal-icon'
+            }, '👤');
+            
+            const indicatorContent = Utils.DOM.create('div', {
+                className: 'indicator-content'
+            });
+            
+            const indicatorTitle = Utils.DOM.create('span', {
+                className: 'indicator-title'
+            }, 'Personal Workspace');
+            
+            const indicatorText = Utils.DOM.create('span', {
+                className: 'indicator-text'
+            }, 'Individual service management');
+            
+            indicatorContent.appendChild(indicatorTitle);
+            indicatorContent.appendChild(indicatorText);
+            
+            // Only show team switch button if user has team advertiser role
+            if (AppState.hasRole('team_advertiser')) {
+                const indicatorActions = Utils.DOM.create('div', {
+                    className: 'indicator-actions'
+                });
+                
+                const switchBtn = Utils.DOM.create('button', {
+                    className: 'indicator-action-btn',
+                    title: 'Switch to Team Workspace',
+                    onclick: () => this.showTeamSelectionModal()
+                }, '🏢');
+                
+                indicatorActions.appendChild(switchBtn);
+                workspaceIndicator.appendChild(indicatorActions);
+            }
+            
+            workspaceIndicator.appendChild(indicatorIcon);
+            workspaceIndicator.appendChild(indicatorContent);
+            
+            Utils.DOM.addClass(workspaceIndicator, 'personal-workspace');
+        }
+        
+        return workspaceIndicator;
+    }
+
+    /**
+     * Navigation helper methods
+     */
+    navigateToTeamManagement() {
+        AppState.setState('ui.activeSidebarItem', 'team');
+    }
+
+    navigateToTeamAnalytics() {
+        AppState.setState('ui.activeSidebarItem', 'analytics');
+    }
+
+    navigateToTeamServices() {
+        AppState.setState('ui.activeSidebarItem', 'services');
     }
 
     /**
@@ -579,22 +1137,9 @@ class DashboardApp {
         // Get navigation items for current role
         const navItems = this.getNavigationItemsForRole(activeRole, workspaceContext);
         
-        // Add workspace indicator if in team workspace
-        if (workspaceContext.type === 'team' && workspaceContext.name) {
-            const workspaceIndicator = Utils.DOM.create('div', {
-                className: 'workspace-indicator'
-            });
-            
-            const indicatorIcon = Utils.DOM.create('span', {
-                className: 'indicator-icon'
-            }, '🏢');
-            
-            const indicatorText = Utils.DOM.create('span', {
-                className: 'indicator-text'
-            }, workspaceContext.name);
-            
-            workspaceIndicator.appendChild(indicatorIcon);
-            workspaceIndicator.appendChild(indicatorText);
+        // Add workspace indicator
+        const workspaceIndicator = this.createWorkspaceIndicator(workspaceContext);
+        if (workspaceIndicator) {
             sidebarNav.appendChild(workspaceIndicator);
             
             // Add separator
@@ -946,7 +1491,102 @@ class DashboardApp {
         if (!roleConfig) return [];
         
         const workspaceType = workspaceContext.type || 'personal';
-        return roleConfig[workspaceType] || roleConfig.personal || [];
+        let navItems = roleConfig[workspaceType] || roleConfig.personal || [];
+        
+        // Add workspace-specific badges and indicators
+        navItems = navItems.map(item => {
+            const enhancedItem = { ...item };
+            
+            // Add workspace context to labels
+            if (workspaceType === 'team' && workspaceContext.name) {
+                switch (item.id) {
+                    case 'services':
+                        enhancedItem.label = 'Team Services';
+                        enhancedItem.badge = this.getTeamServiceCount();
+                        break;
+                    case 'orders':
+                        enhancedItem.label = 'Team Orders';
+                        enhancedItem.badge = this.getTeamOrderCount();
+                        break;
+                    case 'earnings':
+                        enhancedItem.label = 'Team Earnings';
+                        break;
+                    case 'dashboard':
+                        enhancedItem.label = 'Team Dashboard';
+                        break;
+                }
+            } else {
+                // Personal workspace labels
+                switch (item.id) {
+                    case 'services':
+                        enhancedItem.badge = this.getPersonalServiceCount();
+                        break;
+                    case 'orders':
+                        enhancedItem.badge = this.getPersonalOrderCount();
+                        break;
+                }
+            }
+            
+            return enhancedItem;
+        });
+        
+        return navItems;
+    }
+
+    /**
+     * Get service count for current workspace
+     */
+    getTeamServiceCount() {
+        const workspaceContext = AppState.getWorkspaceContext();
+        if (workspaceContext.type !== 'team') return null;
+        
+        const services = AppState.getState('services');
+        if (!services) return 0;
+        
+        return Array.from(services.values()).filter(service => 
+            service.workspaceType === 'team' && service.workspaceOwnerId === workspaceContext.id
+        ).length;
+    }
+
+    getPersonalServiceCount() {
+        const userId = AppState.getState('user.id');
+        const services = AppState.getState('services');
+        if (!services) return 0;
+        
+        return Array.from(services.values()).filter(service => 
+            service.workspaceType === 'personal' && service.createdBy === userId
+        ).length;
+    }
+
+    /**
+     * Get order count for current workspace
+     */
+    getTeamOrderCount() {
+        const workspaceContext = AppState.getWorkspaceContext();
+        if (workspaceContext.type !== 'team') return null;
+        
+        const orders = AppState.getState('orders');
+        if (!orders) return 0;
+        
+        // Get team services first
+        const services = AppState.getState('services');
+        const teamServiceIds = Array.from(services.values())
+            .filter(service => service.workspaceType === 'team' && service.workspaceOwnerId === workspaceContext.id)
+            .map(service => service.id);
+        
+        return Array.from(orders.values()).filter(order => 
+            teamServiceIds.includes(order.serviceId)
+        ).length;
+    }
+
+    getPersonalOrderCount() {
+        const userId = AppState.getState('user.id');
+        const orders = AppState.getState('orders');
+        if (!orders) return 0;
+        
+        return Array.from(orders.values()).filter(order => 
+            order.advertiserId === userId
+        ).length;
     }
 
     /**
@@ -1160,6 +1800,10 @@ class DashboardApp {
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     const app = new DashboardApp();
+    
+    // Make app globally available for onclick handlers
+    window.app = app;
+    
     app.init();
     
     // Make app globally available for debugging
