@@ -711,6 +711,11 @@ class DashboardApp {
      * Create placeholder content for views
      */
     createPlaceholderContent(role, item) {
+        // Handle services view with actual implementation
+        if (item === 'services' && (role === 'advertiser' || role === 'team_advertiser')) {
+            return this.createServicesView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -730,6 +735,41 @@ class DashboardApp {
         
         placeholder.appendChild(card);
         return placeholder;
+    }
+
+    /**
+     * Create services view
+     */
+    createServicesView() {
+        const container = Utils.DOM.create('div', {
+            className: 'services-view'
+        });
+
+        // Initialize ServiceManager if not already done
+        if (typeof ServiceManager !== 'undefined' && ServiceManager.renderServices) {
+            // ServiceManager will render directly to content area
+            setTimeout(() => {
+                ServiceManager.renderServices();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'My Services',
+                content: '<div class="loading-spinner"></div><p>Loading services...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if ServiceManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Service Management',
+                content: '<p>Service management is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
     }
 
     /**

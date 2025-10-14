@@ -65,7 +65,9 @@
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
 - [ ] 4. Build Advertiser dashboard functionality
-  - [-] 4.1 Create service management interface
+  - [x] 4.1 Create service management interface
+
+
 
 
 

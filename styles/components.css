@@ -759,4 +759,316 @@
     transform: translateX(-50%);
     border: 4px solid transparent;
     border-top-color: var(--bg-tertiary);
+}/* 
+Service Management Components */
+.service-management {
+    padding: var(--spacing-lg);
+}
+
+.service-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.service-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.service-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.service-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.service-card:hover {
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.service-card.active {
+    border-left: 4px solid var(--success);
+}
+
+.service-card.inactive {
+    border-left: 4px solid var(--text-muted);
+    opacity: 0.8;
+}
+
+.service-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+}
+
+.service-icon {
+    font-size: var(--font-size-lg);
+    padding: var(--spacing-xs);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+}
+
+.service-card-content {
+    margin-bottom: var(--spacing-md);
+}
+
+.service-card-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+    line-height: 1.4;
+}
+
+.service-card-description {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-md) 0;
+    line-height: 1.5;
+}
+
+.service-pricing {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.price-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.price-item.gold {
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #ffd700;
+}
+
+.price-item.usd {
+    background-color: rgba(87, 242, 135, 0.1);
+    color: var(--success);
+}
+
+.price-item.toman {
+    background-color: rgba(88, 101, 242, 0.1);
+    color: var(--discord-blurple);
+}
+
+.service-card-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.service-card-actions .btn-sm {
+    flex: 1;
+    min-width: 80px;
+}
+
+/* Service Form */
+.service-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-section-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-primary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: var(--text-secondary);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.6;
+}
+
+.empty-state-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.empty-state-message {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Modal Sizes */
+.modal-small {
+    width: 400px;
+}
+
+.modal-medium {
+    width: 600px;
+}
+
+.modal-large {
+    width: 800px;
+}
+
+.modal-xlarge {
+    width: 1000px;
+}
+
+/* Responsive Design for Service Management */
+@media (max-width: 768px) {
+    .service-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+    
+    .service-filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-card-actions {
+        flex-direction: column;
+    }
+    
+    .service-card-actions .btn-sm {
+        flex: none;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+/* Service Form Validation States */
+.form-input:invalid {
+    border-color: var(--error);
+}
+
+.form-input:valid {
+    border-color: var(--success);
+}
+
+/* Loading States */
+.service-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.service-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-primary);
+    border-radius: 50%;
+    border-top-color: var(--discord-blurple);
+    animation: spin 1s linear infinite;
+}
+
+/* Service Type Specific Styling */
+.service-card[data-type="mythic_plus"] {
+    border-left-color: #ff6b35;
+}
+
+.service-card[data-type="leveling"] {
+    border-left-color: #4ecdc4;
+}
+
+.service-card[data-type="delves"] {
+    border-left-color: #45b7d1;
+}
+
+.service-card[data-type="custom_boost"] {
+    border-left-color: #f9ca24;
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.confirmation-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.confirmation-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.confirmation-message {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-lg) 0;
+    line-height: 1.5;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
 }

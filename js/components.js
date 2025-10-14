@@ -716,6 +716,491 @@ const Components = {
         }
 
         return item;
+    },
+
+    /**
+     * Create service management interface
+     * @param {Object} options - Service management options
+     * @returns {Element} Service management element
+     */
+    createServiceManagement(options = {}) {
+        const {
+            services = [],
+            onCreateService = null,
+            onEditService = null,
+            onDeleteService = null,
+            onToggleService = null
+        } = options;
+
+        const container = Utils.DOM.create('div', {
+            className: 'service-management'
+        });
+
+        // Header
+        const header = this.createServiceHeader(onCreateService);
+        container.appendChild(header);
+
+        // Filters
+        const filters = this.createServiceFilters();
+        container.appendChild(filters);
+
+        // Services grid
+        const grid = this.createServicesGrid({
+            services,
+            onEditService,
+            onDeleteService,
+            onToggleService
+        });
+        container.appendChild(grid);
+
+        return container;
+    },
+
+    /**
+     * Create service header with create button
+     * @param {Function} onCreateService - Create service callback
+     * @returns {Element} Service header element
+     */
+    createServiceHeader(onCreateService) {
+        const header = Utils.DOM.create('div', {
+            className: 'service-header'
+        });
+
+        const title = Utils.DOM.create('h2', {
+            className: 'service-title'
+        }, 'My Services');
+
+        const createBtn = this.createButton({
+            text: 'Create New Service',
+            icon: '➕',
+            variant: 'primary',
+            onClick: onCreateService
+        });
+
+        header.appendChild(title);
+        header.appendChild(createBtn);
+
+        return header;
+    },
+
+    /**
+     * Create service filters
+     * @returns {Element} Service filters element
+     */
+    createServiceFilters() {
+        const filters = Utils.DOM.create('div', {
+            className: 'service-filters'
+        });
+
+        // Service type filter
+        const typeFilter = this.createFormGroup({
+            label: 'Service Type',
+            type: 'select',
+            name: 'serviceType',
+            options: [
+                { value: 'all', label: 'All Services' },
+                { value: 'mythic_plus', label: 'Mythic+' },
+                { value: 'leveling', label: 'Leveling' },
+                { value: 'delves', label: 'Delves' },
+                { value: 'custom_boost', label: 'Custom Boost' }
+            ]
+        });
+
+        // Status filter
+        const statusFilter = this.createFormGroup({
+            label: 'Status',
+            type: 'select',
+            name: 'status',
+            options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' }
+            ]
+        });
+
+        // Search input
+        const searchInput = this.createFormGroup({
+            label: 'Search',
+            type: 'text',
+            name: 'search',
+            placeholder: 'Search services...'
+        });
+
+        filters.appendChild(typeFilter);
+        filters.appendChild(statusFilter);
+        filters.appendChild(searchInput);
+
+        return filters;
+    },
+
+    /**
+     * Create services grid
+     * @param {Object} options - Grid options
+     * @returns {Element} Services grid element
+     */
+    createServicesGrid(options = {}) {
+        const {
+            services = [],
+            onEditService = null,
+            onDeleteService = null,
+            onToggleService = null
+        } = options;
+
+        const grid = Utils.DOM.create('div', {
+            className: 'services-grid'
+        });
+
+        if (services.length === 0) {
+            const emptyState = this.createEmptyState({
+                icon: '📝',
+                title: 'No Services Yet',
+                message: 'Create your first service to start earning!'
+            });
+            grid.appendChild(emptyState);
+            return grid;
+        }
+
+        services.forEach(service => {
+            const serviceCard = this.createServiceCard({
+                service,
+                onEdit: () => onEditService && onEditService(service),
+                onDelete: () => onDeleteService && onDeleteService(service),
+                onToggle: () => onToggleService && onToggleService(service)
+            });
+            grid.appendChild(serviceCard);
+        });
+
+        return grid;
+    },
+
+    /**
+     * Create service card
+     * @param {Object} options - Service card options
+     * @returns {Element} Service card element
+     */
+    createServiceCard(options = {}) {
+        const {
+            service = {},
+            onEdit = null,
+            onDelete = null,
+            onToggle = null
+        } = options;
+
+        const card = Utils.DOM.create('div', {
+            className: `service-card ${service.status === 'active' ? 'active' : 'inactive'}`
+        });
+
+        // Header
+        const header = Utils.DOM.create('div', {
+            className: 'service-card-header'
+        });
+
+        const typeIcon = this.getServiceTypeIcon(service.serviceType);
+        const icon = Utils.DOM.create('span', {
+            className: 'service-icon'
+        }, typeIcon);
+
+        const statusBadge = this.createStatusBadge({
+            status: service.status,
+            text: service.status === 'active' ? 'Active' : 'Inactive'
+        });
+
+        header.appendChild(icon);
+        header.appendChild(statusBadge);
+        card.appendChild(header);
+
+        // Content
+        const content = Utils.DOM.create('div', {
+            className: 'service-card-content'
+        });
+
+        const title = Utils.DOM.create('h3', {
+            className: 'service-card-title'
+        }, service.title || 'Untitled Service');
+
+        const description = Utils.DOM.create('p', {
+            className: 'service-card-description'
+        }, this.truncateText(service.description || '', 100));
+
+        const pricing = Utils.DOM.create('div', {
+            className: 'service-pricing'
+        });
+
+        const goldPrice = Utils.DOM.create('span', {
+            className: 'price-item gold'
+        }, `🪙 ${service.priceGold || 0}G`);
+
+        const usdPrice = Utils.DOM.create('span', {
+            className: 'price-item usd'
+        }, `💵 $${(service.priceUsd || 0).toFixed(2)}`);
+
+        const tomanPrice = Utils.DOM.create('span', {
+            className: 'price-item toman'
+        }, `﷼ ${(service.priceToman || 0).toLocaleString()}`);
+
+        pricing.appendChild(goldPrice);
+        pricing.appendChild(usdPrice);
+        pricing.appendChild(tomanPrice);
+
+        content.appendChild(title);
+        content.appendChild(description);
+        content.appendChild(pricing);
+        card.appendChild(content);
+
+        // Actions
+        const actions = Utils.DOM.create('div', {
+            className: 'service-card-actions'
+        });
+
+        const toggleBtn = this.createButton({
+            text: service.status === 'active' ? 'Deactivate' : 'Activate',
+            variant: service.status === 'active' ? 'warning' : 'success',
+            size: 'sm',
+            onClick: onToggle
+        });
+
+        const editBtn = this.createButton({
+            text: 'Edit',
+            icon: '✏️',
+            variant: 'secondary',
+            size: 'sm',
+            onClick: onEdit
+        });
+
+        const deleteBtn = this.createButton({
+            text: 'Delete',
+            icon: '🗑️',
+            variant: 'error',
+            size: 'sm',
+            onClick: onDelete
+        });
+
+        actions.appendChild(toggleBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        card.appendChild(actions);
+
+        return card;
+    },
+
+    /**
+     * Create service form modal
+     * @param {Object} options - Form options
+     * @returns {Element} Service form element
+     */
+    createServiceForm(options = {}) {
+        const {
+            service = null,
+            onSubmit = null,
+            onCancel = null
+        } = options;
+
+        const isEdit = !!service;
+        const form = Utils.DOM.create('form', {
+            className: 'service-form',
+            onsubmit: (e) => {
+                e.preventDefault();
+                if (onSubmit) {
+                    const formData = new FormData(e.target);
+                    const serviceData = Object.fromEntries(formData.entries());
+                    onSubmit(serviceData);
+                }
+            }
+        });
+
+        // Service Type
+        const typeGroup = this.createFormGroup({
+            label: 'Service Type',
+            type: 'select',
+            name: 'serviceType',
+            value: service?.serviceType || '',
+            required: true,
+            options: [
+                { value: '', label: 'Select service type...' },
+                { value: 'mythic_plus', label: 'Mythic+ Dungeons' },
+                { value: 'leveling', label: 'Leveling' },
+                { value: 'delves', label: 'Delves' },
+                { value: 'custom_boost', label: 'Custom Boost' }
+            ]
+        });
+
+        // Title
+        const titleGroup = this.createFormGroup({
+            label: 'Service Title',
+            type: 'text',
+            name: 'title',
+            value: service?.title || '',
+            placeholder: 'Enter service title...',
+            required: true,
+            help: 'Choose a clear, descriptive title for your service'
+        });
+
+        // Description
+        const descriptionGroup = this.createFormGroup({
+            label: 'Description',
+            type: 'textarea',
+            name: 'description',
+            value: service?.description || '',
+            placeholder: 'Describe your service in detail...',
+            required: true,
+            help: 'Provide detailed information about what you offer'
+        });
+
+        // Pricing section
+        const pricingTitle = Utils.DOM.create('h4', {
+            className: 'form-section-title'
+        }, 'Pricing');
+
+        const goldGroup = this.createFormGroup({
+            label: 'Gold Price',
+            type: 'number',
+            name: 'priceGold',
+            value: service?.priceGold || '',
+            placeholder: '0',
+            required: true,
+            help: 'Price in WoW Gold'
+        });
+
+        const usdGroup = this.createFormGroup({
+            label: 'USD Price',
+            type: 'number',
+            name: 'priceUsd',
+            value: service?.priceUsd || '',
+            placeholder: '0.00',
+            step: '0.01',
+            required: true,
+            help: 'Price in US Dollars'
+        });
+
+        const tomanGroup = this.createFormGroup({
+            label: 'Toman Price',
+            type: 'number',
+            name: 'priceToman',
+            value: service?.priceToman || '',
+            placeholder: '0',
+            required: true,
+            help: 'Price in Iranian Toman'
+        });
+
+        // Additional details
+        const detailsTitle = Utils.DOM.create('h4', {
+            className: 'form-section-title'
+        }, 'Service Details');
+
+        const timeGroup = this.createFormGroup({
+            label: 'Estimated Time',
+            type: 'text',
+            name: 'estimatedTime',
+            value: service?.estimatedTime || '',
+            placeholder: 'e.g., 1-2 hours',
+            help: 'How long does this service typically take?'
+        });
+
+        const requirementsGroup = this.createFormGroup({
+            label: 'Requirements',
+            type: 'textarea',
+            name: 'requirements',
+            value: service?.requirements || '',
+            placeholder: 'List any requirements for this service...',
+            help: 'What does the buyer need to provide or have?'
+        });
+
+        // Form actions
+        const actions = Utils.DOM.create('div', {
+            className: 'form-actions'
+        });
+
+        const cancelBtn = this.createButton({
+            text: 'Cancel',
+            variant: 'secondary',
+            onClick: onCancel
+        });
+
+        const submitBtn = this.createButton({
+            text: isEdit ? 'Update Service' : 'Create Service',
+            variant: 'primary',
+            type: 'submit'
+        });
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(submitBtn);
+
+        // Append all elements
+        form.appendChild(typeGroup);
+        form.appendChild(titleGroup);
+        form.appendChild(descriptionGroup);
+        form.appendChild(pricingTitle);
+        form.appendChild(goldGroup);
+        form.appendChild(usdGroup);
+        form.appendChild(tomanGroup);
+        form.appendChild(detailsTitle);
+        form.appendChild(timeGroup);
+        form.appendChild(requirementsGroup);
+        form.appendChild(actions);
+
+        return form;
+    },
+
+    /**
+     * Create empty state component
+     * @param {Object} options - Empty state options
+     * @returns {Element} Empty state element
+     */
+    createEmptyState(options = {}) {
+        const {
+            icon = '📭',
+            title = 'No Data',
+            message = 'Nothing to show here yet.'
+        } = options;
+
+        const container = Utils.DOM.create('div', {
+            className: 'empty-state'
+        });
+
+        const iconEl = Utils.DOM.create('div', {
+            className: 'empty-state-icon'
+        }, icon);
+
+        const titleEl = Utils.DOM.create('h3', {
+            className: 'empty-state-title'
+        }, title);
+
+        const messageEl = Utils.DOM.create('p', {
+            className: 'empty-state-message'
+        }, message);
+
+        container.appendChild(iconEl);
+        container.appendChild(titleEl);
+        container.appendChild(messageEl);
+
+        return container;
+    },
+
+    /**
+     * Get service type icon
+     * @param {string} serviceType - Service type
+     * @returns {string} Icon emoji
+     */
+    getServiceTypeIcon(serviceType) {
+        const icons = {
+            'mythic_plus': '🏰',
+            'leveling': '📈',
+            'delves': '⛏️',
+            'custom_boost': '⚡',
+            'raid': '🛡️'
+        };
+        return icons[serviceType] || '📝';
+    },
+
+    /**
+     * Truncate text to specified length
+     * @param {string} text - Text to truncate
+     * @param {number} length - Maximum length
+     * @returns {string} Truncated text
+     */
+    truncateText(text, length) {
+        if (text.length <= length) return text;
+        return text.substring(0, length) + '...';
     }
 };
 
