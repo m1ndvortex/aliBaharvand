@@ -104,7 +104,11 @@
     - Add bulk order operations for efficient management
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [ ] 4.4 Build earnings dashboard
+  - [x] 4.4 Build earnings dashboard
+
+
+
+
     - Create earnings overview with multi-currency display (Gold, USD, Toman)
     - Implement earnings history with filtering by date range and service type
     - Build earnings analytics with charts and performance metrics

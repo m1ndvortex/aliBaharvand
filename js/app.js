@@ -726,6 +726,11 @@ class DashboardApp {
             return this.createOrdersView();
         }
         
+        // Handle earnings view with actual implementation
+        if (item === 'earnings') {
+            return this.createEarningsView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -796,6 +801,78 @@ class DashboardApp {
             RaidBookingManager_Instance.init();
             setTimeout(() => {
                 RaidBookingManager_Instance.renderRaidBooking();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Raid Booking',
+                content: '<div class="loading-spinner"></div><p>Loading raid booking...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if RaidBookingManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Raid Booking',
+                content: '<p>Raid booking is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create earnings view
+     */
+    createEarningsView() {
+        const container = Utils.DOM.create('div', {
+            className: 'earnings-view'
+        });
+
+        // Initialize EarningsManager if not already done
+        if (typeof EarningsManager !== 'undefined' && EarningsManager_Instance) {
+            // Initialize and render earnings
+            EarningsManager_Instance.init();
+            setTimeout(() => {
+                EarningsManager_Instance.renderEarnings();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Earnings Dashboard',
+                content: '<div class="loading-spinner"></div><p>Loading earnings data...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if EarningsManager is not loaded
+            const errorCard = Components.createCard({
+                title: 'Earnings Dashboard',
+                content: '<p>Earnings dashboard is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create orders view
+     */
+    createOrdersView() {
+        const container = Utils.DOM.create('div', {
+            className: 'orders-view'
+        });
+
+        // Initialize OrderManager if not already done
+        if (typeof OrderManager !== 'undefined' && OrderManager_Instance) {
+            // Initialize and render orders
+            OrderManager_Instance.init();
+            setTimeout(() => {
+                OrderManager_Instance.renderOrders();
             }, 0);
             
             // Return loading placeholder
