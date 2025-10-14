@@ -92,11 +92,13 @@ class TeamManager {
             // Team exists - show management interface
             const teamInfo = this.createTeamInfoSection();
             const memberManagement = this.createMemberManagementSection();
+            const collaborationFeatures = this.createCollaborationSection();
             const teamSettings = this.createTeamSettingsSection();
             const activityLog = this.createActivityLogSection();
 
             container.appendChild(teamInfo);
             container.appendChild(memberManagement);
+            container.appendChild(collaborationFeatures);
             container.appendChild(teamSettings);
             container.appendChild(activityLog);
         } else {
@@ -417,6 +419,42 @@ class TeamManager {
     }
 
     /**
+     * Create collaboration section
+     */
+    createCollaborationSection() {
+        const section = Utils.DOM.create('div', {
+            className: 'collaboration-section'
+        });
+
+        // Initialize team collaboration if not already done
+        if (window.TeamCollaboration_Instance && !window.TeamCollaboration_Instance.initialized) {
+            window.TeamCollaboration_Instance.init();
+        }
+
+        // Render collaboration features
+        if (window.TeamCollaboration_Instance) {
+            const collaborationFeatures = window.TeamCollaboration_Instance.renderCollaborationFeatures(this.currentTeam.id);
+            section.appendChild(collaborationFeatures);
+        } else {
+            // Fallback if collaboration module not loaded
+            const fallbackCard = Components.createCard({
+                title: '🤝 Team Collaboration',
+                content: `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🤝</div>
+                        <h4 class="empty-state-title">Collaboration Features Loading</h4>
+                        <p class="empty-state-message">Team collaboration features are being loaded...</p>
+                    </div>
+                `,
+                className: 'collaboration-fallback-card'
+            });
+            section.appendChild(fallbackCard);
+        }
+
+        return section;
+    }
+
+    /**
      * Create team settings section
      */
     createTeamSettingsSection() {
@@ -512,10 +550,27 @@ class TeamManager {
             className: 'activity-log-section'
         });
 
+        const actions = [
+            Components.createButton({
+                text: 'Refresh',
+                icon: '🔄',
+                variant: 'secondary',
+                size: 'sm',
+                onClick: () => this.refreshActivityLog()
+            })
+        ];
+
         const card = Components.createCard({
             title: 'Recent Activity',
-            content: this.createActivityLogContent(),
+            actions: actions,
             className: 'activity-log-card'
+        });
+
+        // Create content asynchronously
+        this.createActivityLogContent().then(content => {
+            const cardBody = card.querySelector('.card-body');
+            Utils.DOM.empty(cardBody);
+            cardBody.appendChild(content);
         });
 
         section.appendChild(card);
@@ -523,32 +578,44 @@ class TeamManager {
     }
 
     /**
+     * Refresh activity log
+     */
+    async refreshActivityLog() {
+        const activityCard = Utils.DOM.select('.activity-log-card');
+        if (!activityCard) return;
+
+        const cardBody = activityCard.querySelector('.card-body');
+        
+        // Show loading state
+        cardBody.innerHTML = '<div class="loading-spinner">Loading activity...</div>';
+
+        try {
+            const content = await this.createActivityLogContent();
+            Utils.DOM.empty(cardBody);
+            cardBody.appendChild(content);
+
+            Components.showNotification({
+                type: 'success',
+                title: 'Activity Refreshed',
+                message: 'Team activity log has been updated',
+                duration: 2000
+            });
+        } catch (error) {
+            console.error('Failed to refresh activity log:', error);
+            cardBody.innerHTML = '<div class="error-message">Failed to load activity log</div>';
+        }
+    }
+
+    /**
      * Create activity log content
      */
-    createActivityLogContent() {
+    async createActivityLogContent() {
         const content = Utils.DOM.create('div', {
             className: 'activity-log-content'
         });
 
-        // Mock activity data for demonstration
-        const activities = [
-            {
-                id: 1,
-                userId: 'user123',
-                username: 'ProBooster#1234',
-                action: 'team_created',
-                details: { teamName: this.currentTeam.name },
-                timestamp: new Date().toISOString()
-            },
-            {
-                id: 2,
-                userId: 'user123',
-                username: 'ProBooster#1234',
-                action: 'service_created',
-                details: { serviceName: 'Mythic+20 Boost' },
-                timestamp: new Date(Date.now() - 3600000).toISOString()
-            }
-        ];
+        // Load real activity logs from mock data
+        const activities = await this.loadTeamActivityLogs();
 
         if (activities.length === 0) {
             const emptyState = Utils.DOM.create('div', {
@@ -562,6 +629,10 @@ class TeamManager {
             content.appendChild(emptyState);
             return content;
         }
+
+        // Create activity filters
+        const activityFilters = this.createActivityFilters();
+        content.appendChild(activityFilters);
 
         const activityList = Utils.DOM.create('div', {
             className: 'activity-list'
@@ -577,6 +648,77 @@ class TeamManager {
     }
 
     /**
+     * Load team activity logs
+     */
+    async loadTeamActivityLogs() {
+        if (!this.currentTeam) return [];
+
+        try {
+            const mockDataManager = new MockDataManager();
+            const result = await mockDataManager.getTeamActivityLogs(this.currentTeam.id, 50);
+            
+            if (result.success) {
+                // Enrich activity logs with user information
+                const enrichedLogs = result.data.map(log => {
+                    const user = mockDataManager.getUserSync(log.userId);
+                    return {
+                        ...log,
+                        username: user?.discordUsername || 'Unknown User',
+                        userAvatar: user?.discordAvatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'
+                    };
+                });
+                return enrichedLogs;
+            }
+            return [];
+        } catch (error) {
+            console.error('Failed to load team activity logs:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Create activity filters
+     */
+    createActivityFilters() {
+        const filters = Utils.DOM.create('div', {
+            className: 'activity-filters'
+        });
+
+        const filterSelect = Components.createFormGroup({
+            label: 'Filter Activity',
+            type: 'select',
+            name: 'activityFilter',
+            options: [
+                { value: 'all', label: 'All Activity' },
+                { value: 'service_created', label: 'Service Created' },
+                { value: 'service_edited', label: 'Service Edited' },
+                { value: 'service_activated', label: 'Service Activated' },
+                { value: 'service_deactivated', label: 'Service Deactivated' },
+                { value: 'member_joined', label: 'Member Joined' },
+                { value: 'member_removed', label: 'Member Removed' },
+                { value: 'team_settings_updated', label: 'Settings Updated' }
+            ]
+        });
+
+        const dateFilter = Components.createFormGroup({
+            label: 'Date Range',
+            type: 'select',
+            name: 'dateFilter',
+            options: [
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'Last 7 Days' },
+                { value: 'month', label: 'Last 30 Days' },
+                { value: 'all', label: 'All Time' }
+            ]
+        });
+
+        filters.appendChild(filterSelect);
+        filters.appendChild(dateFilter);
+
+        return filters;
+    }
+
+    /**
      * Create activity item
      */
     createActivityItem(activity) {
@@ -588,14 +730,91 @@ class TeamManager {
         const description = this.getActivityDescription(activity);
 
         item.innerHTML = `
-            <div class="activity-icon">${icon}</div>
+            <div class="activity-avatar">
+                <img src="${activity.userAvatar}" alt="${activity.username}" />
+            </div>
             <div class="activity-content">
+                <div class="activity-header">
+                    <span class="activity-user">${activity.username}</span>
+                    <span class="activity-action-icon">${icon}</span>
+                    <span class="activity-timestamp">${this.formatRelativeTime(activity.timestamp)}</span>
+                </div>
                 <p class="activity-description">${description}</p>
-                <p class="activity-timestamp">${this.formatRelativeTime(activity.timestamp)}</p>
+                ${this.createActivityDetails(activity)}
             </div>
         `;
 
         return item;
+    }
+
+    /**
+     * Create detailed activity information
+     */
+    createActivityDetails(activity) {
+        if (!activity.details) return '';
+
+        const details = activity.details;
+        let detailsHtml = '<div class="activity-details">';
+
+        switch (activity.action) {
+            case 'service_created':
+                detailsHtml += `
+                    <div class="detail-item">
+                        <span class="detail-label">Service:</span>
+                        <span class="detail-value">${details.serviceName || 'Unknown'}</span>
+                    </div>
+                    ${details.serviceType ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">${this.formatServiceType(details.serviceType)}</span>
+                        </div>
+                    ` : ''}
+                `;
+                break;
+            case 'service_edited':
+                detailsHtml += `
+                    <div class="detail-item">
+                        <span class="detail-label">Service:</span>
+                        <span class="detail-value">${details.serviceName || 'Unknown'}</span>
+                    </div>
+                    ${details.changes ? `
+                        <div class="detail-item">
+                            <span class="detail-label">Changes:</span>
+                            <span class="detail-value">${details.changes.join(', ')}</span>
+                        </div>
+                    ` : ''}
+                `;
+                break;
+            case 'member_joined':
+                detailsHtml += `
+                    <div class="detail-item">
+                        <span class="detail-label">Role:</span>
+                        <span class="detail-value">${this.formatMemberRole(details.role || 'member')}</span>
+                    </div>
+                `;
+                break;
+            case 'member_removed':
+                detailsHtml += `
+                    <div class="detail-item">
+                        <span class="detail-label">Reason:</span>
+                        <span class="detail-value">${details.reason || 'No reason provided'}</span>
+                    </div>
+                `;
+                break;
+            case 'team_settings_updated':
+                if (details.settings) {
+                    detailsHtml += `
+                        <div class="detail-item">
+                            <span class="detail-label">Updated Settings:</span>
+                            <span class="detail-value">${Object.keys(details.settings).join(', ')}</span>
+                        </div>
+                    `;
+                }
+                break;
+        }
+
+        detailsHtml += '</div>';
+        return detailsHtml;
     }
 
     /**
@@ -1063,6 +1282,126 @@ class TeamManager {
             });
         } finally {
             AppState.setLoading('member-invite', false);
+        }
+    }
+
+    /**
+     * Handle team service creation with collaboration tracking
+     */
+    async handleTeamServiceCreation(serviceData) {
+        try {
+            const userId = AppState.getState('user.id');
+            
+            // Create the service
+            const serviceResult = await MockDataAPI.createService({
+                ...serviceData,
+                workspaceType: 'team',
+                workspaceOwnerId: this.currentTeam.id,
+                createdBy: userId
+            });
+
+            if (serviceResult.success && window.TeamCollaboration_Instance) {
+                // Track collaboration
+                await window.TeamCollaboration_Instance.handleTeamServiceCreation(
+                    this.currentTeam.id,
+                    serviceResult.data,
+                    userId
+                );
+            }
+
+            return serviceResult;
+        } catch (error) {
+            console.error('Failed to handle team service creation:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Handle team service editing with collaboration tracking
+     */
+    async handleTeamServiceEdit(serviceId, changes) {
+        try {
+            const userId = AppState.getState('user.id');
+            
+            // Update the service
+            const serviceResult = await MockDataAPI.updateService(serviceId, {
+                ...changes,
+                updatedBy: userId
+            });
+
+            if (serviceResult.success && window.TeamCollaboration_Instance) {
+                // Track collaboration
+                await window.TeamCollaboration_Instance.handleTeamServiceEdit(
+                    this.currentTeam.id,
+                    serviceId,
+                    changes,
+                    userId
+                );
+            }
+
+            return serviceResult;
+        } catch (error) {
+            console.error('Failed to handle team service edit:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Handle member removal with collaboration tracking
+     */
+    async handleMemberRemovalWithCollaboration(member, reason = '') {
+        try {
+            const userId = AppState.getState('user.id');
+            
+            // Remove member
+            const removalResult = await this.handleRemoveMember(member);
+
+            if (removalResult && window.TeamCollaboration_Instance) {
+                // Track collaboration
+                await window.TeamCollaboration_Instance.handleMemberRemoval(
+                    this.currentTeam.id,
+                    member.userId,
+                    userId,
+                    reason
+                );
+            }
+
+            return removalResult;
+        } catch (error) {
+            console.error('Failed to handle member removal with collaboration:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Handle earnings distribution for team orders
+     */
+    async handleTeamEarningsDistribution(orderId, earnings) {
+        try {
+            if (!window.TeamCollaboration_Instance) {
+                console.warn('Team collaboration not available for earnings distribution');
+                return { success: false, message: 'Collaboration system not available' };
+            }
+
+            const result = await window.TeamCollaboration_Instance.updateEarningsDistribution(
+                this.currentTeam.id,
+                orderId,
+                earnings
+            );
+
+            if (result.success) {
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Earnings Distributed',
+                    message: `Team earnings of ${earnings.amount} ${earnings.currency} have been distributed`,
+                    duration: 4000
+                });
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Failed to handle team earnings distribution:', error);
+            return { success: false, error: error.message };
         }
     }
 

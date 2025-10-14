@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Analytics Test - Service Provider Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header with role tabs and workspace switcher -->
+        <header class="dashboard-header" role="banner">
+            <div class="role-tabs" role="tablist" aria-label="User roles">
+                <button class="role-tab" data-role="advertiser" role="tab" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon" aria-hidden="true">📊</span>
+                    <span class="tab-text">Advertiser</span>
+                </button>
+                <button class="role-tab active" data-role="team_advertiser" role="tab" aria-selected="true" tabindex="0">
+                    <span class="tab-icon" aria-hidden="true">👥</span>
+                    <span class="tab-text">Team Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="booster" role="tab" aria-selected="false" tabindex="-1">
+                    <span class="tab-icon" aria-hidden="true">🎮</span>
+                    <span class="tab-text">Booster</span>
+                </button>
+            </div>
+            <div class="workspace-switcher" role="group" aria-label="Workspace switcher">
+                <button class="workspace-btn" data-workspace="personal" aria-pressed="false">
+                    Personal Workspace
+                </button>
+                <button class="workspace-btn active" data-workspace="team" aria-pressed="true">
+                    Team Workspace
+                </button>
+            </div>
+        </header>
+
+        <!-- Main dashboard content -->
+        <div class="dashboard-content">
+            <aside class="sidebar" role="complementary" aria-label="Navigation sidebar">
+                <nav class="sidebar-nav" role="menu" aria-label="Main navigation">
+                    <div class="sidebar-item" data-id="dashboard">
+                        <span class="sidebar-icon">🏠</span>
+                        <span class="sidebar-text">Team Dashboard</span>
+                    </div>
+                    <div class="sidebar-item" data-id="services">
+                        <span class="sidebar-icon">📝</span>
+                        <span class="sidebar-text">Team Services</span>
+                    </div>
+                    <div class="sidebar-item" data-id="orders">
+                        <span class="sidebar-icon">📦</span>
+                        <span class="sidebar-text">Team Orders</span>
+                    </div>
+                    <div class="sidebar-item" data-id="team">
+                        <span class="sidebar-icon">🏢</span>
+                        <span class="sidebar-text">Team Management</span>
+                    </div>
+                    <div class="sidebar-item active" data-id="analytics">
+                        <span class="sidebar-icon">📊</span>
+                        <span class="sidebar-text">Team Analytics</span>
+                    </div>
+                    <div class="sidebar-item" data-id="earnings">
+                        <span class="sidebar-icon">💰</span>
+                        <span class="sidebar-text">Team Earnings</span>
+                    </div>
+                    <div class="sidebar-item" data-id="wallet">
+                        <span class="sidebar-icon">💳</span>
+                        <span class="sidebar-text">Wallet</span>
+                    </div>
+                </nav>
+            </aside>
+            
+            <main class="main-content" role="main" aria-live="polite">
+                <div class="content-area">
+                    <!-- Team Analytics will be rendered here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal overlay for various modals -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container" id="modalContainer">
+            <!-- Dynamic modal content will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Notification container -->
+    <div class="notification-container" id="notificationContainer">
+        <!-- Notifications will be dynamically added here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/mockImages.js"></script>
+    <script src="js/mockDataUtils.js"></script>
+    <script src="js/mockDataAPI.js"></script>
+    <script src="js/mockDataGenerator.js"></script>
+    <script src="js/mockDataTest.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/serviceManager.js"></script>
+    <script src="js/raidBookingManager.js"></script>
+    <script src="js/orderManager.js"></script>
+    <script src="js/earningsManager.js"></script>
+    <script src="js/teamManager.js"></script>
+    <script src="js/teamCollaboration.js"></script>
+    <script src="js/teamAnalytics.js"></script>
+    <script>
+        // Initialize test environment
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Team Analytics Test - Initializing...');
+            
+            // Set up test state
+            AppState.setState({
+                user: {
+                    id: 'user_test_123',
+                    discordId: '123456789',
+                    discordUsername: 'TestUser#1234',
+                    discordAvatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png',
+                    email: 'test@example.com',
+                    roles: ['advertiser', 'team_advertiser', 'booster'],
+                    createdAt: '2024-01-15T10:30:00Z',
+                    isActive: true
+                },
+                ui: {
+                    activeRole: 'team_advertiser',
+                    activeSidebarItem: 'analytics',
+                    workspaceType: 'team'
+                }
+            });
+
+            // Create test team
+            const testTeam = {
+                id: 'team_test_123',
+                name: 'Elite Boosters Test Team',
+                description: 'Test team for analytics demonstration',
+                leaderId: 'user_test_123',
+                members: [
+                    {
+                        userId: 'user_test_123',
+                        discordUsername: 'TestUser#1234',
+                        discordAvatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png',
+                        role: 'leader',
+                        status: 'active',
+                        joinedAt: '2024-01-01T00:00:00Z',
+                        contributionStats: {
+                            servicesCreated: 8,
+                            ordersGenerated: 35,
+                            totalEarnings: 1750.00
+                        }
+                    },
+                    {
+                        userId: 'user_member_1',
+                        discordUsername: 'Member1#5678',
+                        discordAvatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png',
+                        role: 'member',
+                        status: 'active',
+                        joinedAt: '2024-01-10T12:00:00Z',
+                        contributionStats: {
+                            servicesCreated: 5,
+                            ordersGenerated: 22,
+                            totalEarnings: 980.00
+                        }
+                    },
+                    {
+                        userId: 'user_member_2',
+                        discordUsername: 'Member2#9012',
+                        discordAvatarUrl: 'https://cdn.discordapp.com/embed/avatars/2.png',
+                        role: 'member',
+                        status: 'active',
+                        joinedAt: '2024-01-15T14:30:00Z',
+                        contributionStats: {
+                            servicesCreated: 3,
+                            ordersGenerated: 15,
+                            totalEarnings: 720.00
+                        }
+                    }
+                ],
+                settings: {
+                    autoApproveMembers: false,
+                    allowMemberInvites: true,
+                    requireApprovalForServices: false,
+                    earningsDistribution: 'leader_wallet'
+                },
+                stats: {
+                    totalMembers: 3,
+                    totalServices: 16,
+                    totalOrders: 72,
+                    totalEarnings: 3450.00
+                },
+                isActive: true,
+                createdAt: '2024-01-01T00:00:00Z'
+            };
+
+            // Set team in state
+            const teams = new Map();
+            teams.set(testTeam.id, testTeam);
+            AppState.setState('teams', teams);
+
+            // Switch to team workspace
+            AppState.switchWorkspace('team', testTeam.id, testTeam.name);
+
+            // Initialize and render team analytics
+            if (typeof TeamAnalytics_Instance !== 'undefined') {
+                await TeamAnalytics_Instance.init();
+                await TeamAnalytics_Instance.renderTeamAnalytics();
+                
+                console.log('Team Analytics Test - Rendered successfully');
+                
+                // Show success notification
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Team Analytics Test',
+                    message: 'Team analytics dashboard loaded successfully with test data',
+                    duration: 5000
+                });
+            } else {
+                console.error('TeamAnalytics_Instance not found');
+                
+                // Show error notification
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Test Error',
+                    message: 'Failed to load team analytics system',
+                    duration: 0
+                });
+            }
+        });
+    </script>
+</body>
+</html>

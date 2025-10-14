@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Collaboration Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+        }
+        .test-button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: var(--discord-blurple);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background-color: var(--discord-blurple-dark);
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--discord-green);
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Team Collaboration Features Test</h1>
+    
+    <div class="test-section">
+        <h2>📋 Activity Logging Test</h2>
+        <p>Test the team activity logging system</p>
+        <button class="test-button" onclick="testActivityLogging()">Test Activity Logging</button>
+        <button class="test-button" onclick="testContributionTracking()">Test Contribution Tracking</button>
+        <div id="activityResults" class="test-results" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💰 Earnings Distribution Test</h2>
+        <p>Test the team earnings distribution system</p>
+        <button class="test-button" onclick="testEarningsDistribution()">Test Leader Wallet Distribution</button>
+        <button class="test-button" onclick="testIndividualDistribution()">Test Individual Distribution</button>
+        <div id="earningsResults" class="test-results" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🤝 Collaboration Features Test</h2>
+        <p>Test collaborative service management</p>
+        <button class="test-button" onclick="testServiceCollaboration()">Test Service Collaboration</button>
+        <button class="test-button" onclick="testMemberManagement()">Test Member Management</button>
+        <div id="collaborationResults" class="test-results" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Team Analytics Integration</h2>
+        <p>Test team analytics and member contribution display</p>
+        <button class="test-button" onclick="renderTeamAnalytics()">Render Team Analytics</button>
+        <div id="analyticsContainer"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/mockImages.js"></script>
+    <script src="js/mockDataUtils.js"></script>
+    <script src="js/mockDataAPI.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/teamCollaboration.js"></script>
+
+    <script>
+        // Initialize test environment
+        let teamCollaboration;
+        let mockDataManager;
+        let testTeamId = 'team_test_123';
+        let testUserId = 'user_test_123';
+
+        async function initializeTest() {
+            // Initialize mock data manager
+            mockDataManager = new MockDataManager();
+            
+            // Initialize team collaboration
+            teamCollaboration = new TeamCollaboration();
+            await teamCollaboration.init();
+            
+            // Create test team
+            await createTestTeam();
+            
+            console.log('Test environment initialized');
+        }
+
+        async function createTestTeam() {
+            const testTeam = {
+                id: testTeamId,
+                name: 'Test Collaboration Team',
+                description: 'Team for testing collaboration features',
+                leaderId: testUserId,
+                members: [
+                    {
+                        userId: testUserId,
+                        discordUsername: 'TestUser#1234',
+                        discordAvatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png',
+                        role: 'leader',
+                        status: 'active',
+                        joinedAt: new Date().toISOString(),
+                        contributionStats: {
+                            servicesCreated: 0,
+                            ordersGenerated: 0,
+                            totalEarnings: 0
+                        }
+                    }
+                ],
+                settings: {
+                    earningsDistribution: 'leader_wallet',
+                    requireApprovalForServices: false,
+                    allowMemberInvites: true
+                },
+                isActive: true,
+                createdAt: new Date().toISOString()
+            };
+
+            // Store test team in localStorage
+            const teams = JSON.parse(localStorage.getItem('mockData_teams') || '[]');
+            teams.push(testTeam);
+            localStorage.setItem('mockData_teams', JSON.stringify(teams));
+        }
+
+        async function testActivityLogging() {
+            const resultsDiv = document.getElementById('activityResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<p>Testing activity logging...</p>';
+
+            try {
+                // Test logging different types of activities
+                const activities = [
+                    { action: 'service_created', details: { serviceName: 'Test Service', serviceType: 'mythic_plus' } },
+                    { action: 'service_edited', details: { serviceName: 'Test Service', changes: ['title', 'price'] } },
+                    { action: 'member_joined', details: { role: 'member' } },
+                    { action: 'team_settings_updated', details: { settings: ['earningsDistribution'] } }
+                ];
+
+                const results = [];
+                for (const activity of activities) {
+                    const result = await teamCollaboration.logActivity(testTeamId, testUserId, activity.action, activity.details);
+                    results.push(`${activity.action}: ${result.success ? '✅ Success' : '❌ Failed'}`);
+                }
+
+                resultsDiv.innerHTML = `
+                    <h4>Activity Logging Results:</h4>
+                    <ul>
+                        ${results.map(result => `<li>${result}</li>`).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: var(--discord-red);">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testContributionTracking() {
+            const resultsDiv = document.getElementById('activityResults');
+            resultsDiv.style.display = 'block';
+
+            try {
+                // Test contribution tracking
+                const contributions = [
+                    { type: 'service_created', data: { serviceName: 'Test Service' } },
+                    { type: 'order_generated', data: { orderId: 'order_123' } },
+                    { type: 'earnings_added', data: { amount: 100 } }
+                ];
+
+                const results = [];
+                for (const contribution of contributions) {
+                    const result = await teamCollaboration.trackContribution(testTeamId, testUserId, contribution.type, contribution.data);
+                    results.push(`${contribution.type}: ${result.success ? '✅ Success' : '❌ Failed'}`);
+                }
+
+                resultsDiv.innerHTML += `
+                    <h4>Contribution Tracking Results:</h4>
+                    <ul>
+                        ${results.map(result => `<li>${result}</li>`).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: var(--discord-red);">Contribution Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testEarningsDistribution() {
+            const resultsDiv = document.getElementById('earningsResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<p>Testing earnings distribution...</p>';
+
+            try {
+                const earnings = {
+                    orderId: 'order_test_123',
+                    amount: 50,
+                    currency: 'usd'
+                };
+
+                const result = await teamCollaboration.updateEarningsDistribution(testTeamId, earnings.orderId, earnings);
+                
+                resultsDiv.innerHTML = `
+                    <h4>Earnings Distribution Results:</h4>
+                    <p>Leader Wallet Distribution: ${result.success ? '✅ Success' : '❌ Failed'}</p>
+                    ${result.message ? `<p>Message: ${result.message}</p>` : ''}
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: var(--discord-red);">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testIndividualDistribution() {
+            const resultsDiv = document.getElementById('earningsResults');
+            
+            try {
+                // Change team settings to individual distribution
+                const teams = JSON.parse(localStorage.getItem('mockData_teams') || '[]');
+                const teamIndex = teams.findIndex(team => team.id === testTeamId);
+                if (teamIndex !== -1) {
+                    teams[teamIndex].settings.earningsDistribution = 'individual_wallets';
+                    localStorage.setItem('mockData_teams', JSON.stringify(teams));
+                }
+
+                const earnings = {
+                    orderId: 'order_test_456',
+                    amount: 75,
+                    currency: 'usd'
+                };
+
+                const result = await teamCollaboration.updateEarningsDistribution(testTeamId, earnings.orderId, earnings);
+                
+                resultsDiv.innerHTML += `
+                    <h4>Individual Distribution Results:</h4>
+                    <p>Individual Wallet Distribution: ${result.success ? '✅ Success' : '❌ Failed'}</p>
+                    ${result.message ? `<p>Message: ${result.message}</p>` : ''}
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: var(--discord-red);">Individual Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testServiceCollaboration() {
+            const resultsDiv = document.getElementById('collaborationResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<p>Testing service collaboration...</p>';
+
+            try {
+                const serviceData = {
+                    id: 'service_test_123',
+                    title: 'Test Collaborative Service',
+                    serviceType: 'mythic_plus'
+                };
+
+                const createResult = await teamCollaboration.handleTeamServiceCreation(testTeamId, serviceData, testUserId);
+                
+                const editResult = await teamCollaboration.handleTeamServiceEdit(
+                    testTeamId, 
+                    serviceData.id, 
+                    { title: 'Updated Service Title' }, 
+                    testUserId
+                );
+
+                resultsDiv.innerHTML = `
+                    <h4>Service Collaboration Results:</h4>
+                    <p>Service Creation: ${createResult.success ? '✅ Success' : '❌ Failed'}</p>
+                    <p>Service Edit: ${editResult.success ? '✅ Success' : '❌ Failed'}</p>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: var(--discord-red);">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testMemberManagement() {
+            const resultsDiv = document.getElementById('collaborationResults');
+            
+            try {
+                const testMemberId = 'user_test_456';
+                
+                const removalResult = await teamCollaboration.handleMemberRemoval(
+                    testTeamId, 
+                    testMemberId, 
+                    testUserId, 
+                    'Test removal'
+                );
+
+                resultsDiv.innerHTML += `
+                    <h4>Member Management Results:</h4>
+                    <p>Member Removal: ${removalResult.success ? '✅ Success' : '❌ Failed'}</p>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: var(--discord-red);">Member Error: ${error.message}</p>`;
+            }
+        }
+
+        async function renderTeamAnalytics() {
+            const container = document.getElementById('analyticsContainer');
+            
+            try {
+                const collaborationFeatures = teamCollaboration.renderCollaborationFeatures(testTeamId);
+                container.innerHTML = '';
+                container.appendChild(collaborationFeatures);
+            } catch (error) {
+                container.innerHTML = `<p style="color: var(--discord-red);">Error rendering analytics: ${error.message}</p>`;
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initializeTest);
+    </script>
+</body>
+</html>

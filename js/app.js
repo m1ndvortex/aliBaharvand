@@ -1284,6 +1284,11 @@ class DashboardApp {
             return this.createTeamManagementView();
         }
         
+        // Handle team analytics view with actual implementation
+        if (item === 'analytics' && role === 'team_advertiser') {
+            return this.createTeamAnalyticsView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -1744,6 +1749,10 @@ class DashboardApp {
      * Initialize managers
      */
     async initializeManagers() {
+        // Initialize team collaboration system
+        if (window.TeamCollaboration_Instance) {
+            await window.TeamCollaboration_Instance.init();
+        }
         try {
             // Initialize TeamManager if available
             if (typeof TeamManager !== 'undefined' && TeamManager.init) {
@@ -1781,6 +1790,42 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: 'Team Management',
                 content: '<p>Team management is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create team analytics view
+     */
+    createTeamAnalyticsView() {
+        const container = Utils.DOM.create('div', {
+            className: 'team-analytics-view'
+        });
+
+        // Initialize TeamAnalytics if not already done
+        if (typeof TeamAnalytics !== 'undefined' && TeamAnalytics_Instance) {
+            // Initialize and render team analytics
+            TeamAnalytics_Instance.init();
+            setTimeout(() => {
+                TeamAnalytics_Instance.renderTeamAnalytics();
+            }, 0);
+            
+            // Return loading placeholder
+            const loadingCard = Components.createCard({
+                title: 'Team Analytics',
+                content: '<div class="loading-spinner"></div><p>Loading team analytics dashboard...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if TeamAnalytics is not loaded
+            const errorCard = Components.createCard({
+                title: 'Team Analytics',
+                content: '<p>Team analytics dashboard is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);
