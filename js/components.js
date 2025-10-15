@@ -181,8 +181,25 @@ const Components = {
      * @param {Object} options - Modal options
      */
     showModal(options = {}) {
-        const overlay = Utils.DOM.select('#modalOverlay');
-        const container = Utils.DOM.select('#modalContainer');
+        let overlay = Utils.DOM.select('#modalOverlay');
+        let container = Utils.DOM.select('#modalContainer');
+        
+        // Create modal overlay and container if they don't exist
+        if (!overlay) {
+            overlay = Utils.DOM.create('div', {
+                id: 'modalOverlay',
+                className: 'modal-overlay'
+            });
+            document.body.appendChild(overlay);
+        }
+        
+        if (!container) {
+            container = Utils.DOM.create('div', {
+                id: 'modalContainer',
+                className: 'modal-container'
+            });
+            overlay.appendChild(container);
+        }
         
         // Clear existing modal
         Utils.DOM.empty(container);

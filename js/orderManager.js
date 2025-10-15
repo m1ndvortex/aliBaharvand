@@ -1338,128 +1338,1315 @@ class OrderManager {
     }
 
     /**
-     * Show evidence review modal
+     * Show evidence review modal with comprehensive review capabilities
      */
     showEvidenceReview(orderId) {
         const order = this.orders.get(orderId);
-        if (!order || !order.evidence) return;
+        if (!order || !order.evidence) {
+            Utils.UI.showNotification('No evidence found for this order', 'error');
+            return;
+        }
 
         const content = this.createEvidenceReviewContent(order);
         
         Components.showModal({
-            title: `Review Evidence - ${order.id}`,
+            title: `🔍 Review Evidence - Order ${order.id}`,
             content: content,
-            size: 'large',
+            size: 'extra-large',
+            closable: true,
+            className: 'evidence-review-modal',
+            footer: this.createEvidenceReviewFooter(orderId)
+        });
+
+        // Initialize evidence review functionality
+        this.initializeEvidenceReview(orderId);
+    }
+
+    /**
+     * Create comprehensive evidence review content
+     */
+    createEvidenceReviewContent(order) {
+        const container = Utils.DOM.create('div', {
+            className: 'evidence-review-container'
+        });
+
+        // Create main layout with sidebar and content
+        const layout = Utils.DOM.create('div', {
+            className: 'evidence-review-layout'
+        });
+
+        // Left sidebar with order info and quality assessment
+        const sidebar = this.createEvidenceReviewSidebar(order);
+        
+        // Main content area with evidence display
+        const mainContent = this.createEvidenceMainContent(order);
+
+        layout.appendChild(sidebar);
+        layout.appendChild(mainContent);
+        container.appendChild(layout);
+
+        return container;
+    }
+
+    /**
+     * Create evidence review sidebar
+     */
+    createEvidenceReviewSidebar(order) {
+        const sidebar = Utils.DOM.create('div', {
+            className: 'evidence-review-sidebar'
+        });
+
+        // Order Information Section
+        const orderInfoSection = this.createOrderInfoSection(order);
+        sidebar.appendChild(orderInfoSection);
+
+        // Quality Assessment Section
+        const qualitySection = this.createQualityAssessmentSection(order);
+        sidebar.appendChild(qualitySection);
+
+        // Evidence History Section
+        const historySection = this.createEvidenceHistorySection(order);
+        sidebar.appendChild(historySection);
+
+        // Review Guidelines Section
+        const guidelinesSection = this.createReviewGuidelinesSection();
+        sidebar.appendChild(guidelinesSection);
+
+        return sidebar;
+    }
+
+    /**
+     * Create evidence main content area
+     */
+    createEvidenceMainContent(order) {
+        const mainContent = Utils.DOM.create('div', {
+            className: 'evidence-main-content'
+        });
+
+        // Evidence Display Header
+        const header = Utils.DOM.create('div', {
+            className: 'evidence-content-header'
+        });
+
+        const title = Utils.DOM.create('h3', {
+            className: 'evidence-title'
+        }, '📸 Submitted Evidence');
+
+        const timestamp = Utils.DOM.create('div', {
+            className: 'evidence-timestamp'
+        }, `Submitted: ${Utils.Format.date(order.evidence.uploadedAt, 'datetime')}`);
+
+        header.appendChild(title);
+        header.appendChild(timestamp);
+        mainContent.appendChild(header);
+
+        // Evidence Images Section
+        if (order.evidence.imageUrl || (order.evidence.images && order.evidence.images.length > 0)) {
+            const imagesSection = this.createEvidenceImagesSection(order);
+            mainContent.appendChild(imagesSection);
+        }
+
+        // Evidence Notes Section
+        if (order.evidence.notes) {
+            const notesSection = this.createEvidenceNotesSection(order);
+            mainContent.appendChild(notesSection);
+        }
+
+        // Review Actions Section
+        const actionsSection = this.createReviewActionsSection(order);
+        mainContent.appendChild(actionsSection);
+
+        return mainContent;
+    }
+
+    /**
+     * Create order information section
+     */
+    createOrderInfoSection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'review-section order-info-section'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '📋 Order Details');
+
+        const infoGrid = Utils.DOM.create('div', {
+            className: 'order-info-grid'
+        });
+
+        const infoItems = [
+            { label: 'Order ID', value: order.id, icon: '🆔' },
+            { label: 'Service', value: this.getServiceTitle(order.serviceId), icon: '🎮' },
+            { label: 'Booster', value: this.getBoosterDisplayName(order.boosterId), icon: '👤' },
+            { label: 'Amount', value: this.formatOrderAmount(order), icon: '💰' },
+            { label: 'Status', value: order.status, icon: '📊' },
+            { label: 'Created', value: Utils.Format.date(order.createdAt, 'datetime'), icon: '📅' }
+        ];
+
+        infoItems.forEach(item => {
+            const infoItem = Utils.DOM.create('div', {
+                className: 'info-item'
+            });
+
+            const label = Utils.DOM.create('div', {
+                className: 'info-label'
+            }, `${item.icon} ${item.label}`);
+
+            const value = Utils.DOM.create('div', {
+                className: 'info-value'
+            }, item.value);
+
+            infoItem.appendChild(label);
+            infoItem.appendChild(value);
+            infoGrid.appendChild(infoItem);
+        });
+
+        // Special Instructions
+        if (order.specialInstructions) {
+            const instructionsItem = Utils.DOM.create('div', {
+                className: 'info-item special-instructions'
+            });
+
+            const label = Utils.DOM.create('div', {
+                className: 'info-label'
+            }, '📝 Special Instructions');
+
+            const value = Utils.DOM.create('div', {
+                className: 'info-value instructions-text'
+            }, order.specialInstructions);
+
+            instructionsItem.appendChild(label);
+            instructionsItem.appendChild(value);
+            infoGrid.appendChild(instructionsItem);
+        }
+
+        section.appendChild(title);
+        section.appendChild(infoGrid);
+
+        return section;
+    }
+
+    /**
+     * Create quality assessment section
+     */
+    createQualityAssessmentSection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'review-section quality-assessment-section'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '⭐ Quality Assessment');
+
+        const assessmentForm = Utils.DOM.create('div', {
+            className: 'quality-assessment-form'
+        });
+
+        // Quality criteria checklist
+        const criteria = [
+            { id: 'evidence_clear', label: 'Evidence is clear and readable', weight: 3 },
+            { id: 'service_completed', label: 'Service appears completed as requested', weight: 5 },
+            { id: 'instructions_followed', label: 'Special instructions were followed', weight: 4 },
+            { id: 'notes_detailed', label: 'Completion notes are detailed and helpful', weight: 2 },
+            { id: 'professional_quality', label: 'Professional quality of service delivery', weight: 4 }
+        ];
+
+        criteria.forEach(criterion => {
+            const criterionItem = Utils.DOM.create('div', {
+                className: 'quality-criterion'
+            });
+
+            const checkbox = Utils.DOM.create('input', {
+                type: 'checkbox',
+                id: `criterion_${criterion.id}`,
+                className: 'criterion-checkbox',
+                dataset: { weight: criterion.weight }
+            });
+
+            const label = Utils.DOM.create('label', {
+                htmlFor: `criterion_${criterion.id}`,
+                className: 'criterion-label'
+            }, criterion.label);
+
+            const weight = Utils.DOM.create('span', {
+                className: 'criterion-weight'
+            }, `(${criterion.weight}pts)`);
+
+            criterionItem.appendChild(checkbox);
+            criterionItem.appendChild(label);
+            criterionItem.appendChild(weight);
+            assessmentForm.appendChild(criterionItem);
+        });
+
+        // Quality score display
+        const scoreDisplay = Utils.DOM.create('div', {
+            className: 'quality-score-display'
+        });
+
+        const scoreLabel = Utils.DOM.create('div', {
+            className: 'score-label'
+        }, 'Quality Score:');
+
+        const scoreValue = Utils.DOM.create('div', {
+            className: 'score-value',
+            id: 'qualityScore'
+        }, '0/18');
+
+        const scoreBar = Utils.DOM.create('div', {
+            className: 'score-bar'
+        });
+
+        const scoreProgress = Utils.DOM.create('div', {
+            className: 'score-progress',
+            id: 'scoreProgress'
+        });
+
+        scoreBar.appendChild(scoreProgress);
+        scoreDisplay.appendChild(scoreLabel);
+        scoreDisplay.appendChild(scoreValue);
+        scoreDisplay.appendChild(scoreBar);
+
+        section.appendChild(title);
+        section.appendChild(assessmentForm);
+        section.appendChild(scoreDisplay);
+
+        return section;
+    }
+
+    /**
+     * Create evidence history section
+     */
+    createEvidenceHistorySection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'review-section evidence-history-section'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '📚 Evidence History');
+
+        const historyList = Utils.DOM.create('div', {
+            className: 'evidence-history-list'
+        });
+
+        // Get evidence history from order timeline
+        const evidenceEvents = order.timeline?.filter(event => 
+            event.status === 'evidence_submitted' || 
+            event.status === 'under_review' || 
+            event.status === 'rejected' ||
+            event.status === 'completed'
+        ) || [];
+
+        if (evidenceEvents.length === 0) {
+            const noHistory = Utils.DOM.create('div', {
+                className: 'no-history'
+            }, 'No previous evidence submissions');
+            historyList.appendChild(noHistory);
+        } else {
+            evidenceEvents.forEach((event, index) => {
+                const historyItem = this.createEvidenceHistoryItem(event, index);
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        section.appendChild(title);
+        section.appendChild(historyList);
+
+        return section;
+    }
+
+    /**
+     * Create evidence history item
+     */
+    createEvidenceHistoryItem(event, index) {
+        const item = Utils.DOM.create('div', {
+            className: 'history-item'
+        });
+
+        const statusIcon = this.getStatusIcon(event.status);
+        const statusText = this.getStatusDisplayText(event.status);
+
+        const header = Utils.DOM.create('div', {
+            className: 'history-header'
+        });
+
+        const status = Utils.DOM.create('div', {
+            className: `history-status status-${event.status}`
+        }, `${statusIcon} ${statusText}`);
+
+        const timestamp = Utils.DOM.create('div', {
+            className: 'history-timestamp'
+        }, Utils.Format.date(event.timestamp, 'datetime'));
+
+        header.appendChild(status);
+        header.appendChild(timestamp);
+
+        const note = Utils.DOM.create('div', {
+            className: 'history-note'
+        }, event.note || 'No additional notes');
+
+        // Add reviewer info if available
+        if (event.reviewerId) {
+            const reviewer = Utils.DOM.create('div', {
+                className: 'history-reviewer'
+            }, `Reviewed by: ${this.getUserDisplayName(event.reviewerId)}`);
+            item.appendChild(reviewer);
+        }
+
+        item.appendChild(header);
+        item.appendChild(note);
+
+        return item;
+    }
+
+    /**
+     * Create review guidelines section
+     */
+    createReviewGuidelinesSection() {
+        const section = Utils.DOM.create('div', {
+            className: 'review-section guidelines-section'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '📖 Review Guidelines');
+
+        const guidelines = Utils.DOM.create('div', {
+            className: 'guidelines-content'
+        });
+
+        const guidelinesList = [
+            '✅ Verify service completion matches order requirements',
+            '📸 Check evidence images are clear and relevant',
+            '📝 Review completion notes for accuracy and detail',
+            '⚠️ Look for any signs of account compromise or issues',
+            '🎯 Ensure special instructions were followed',
+            '💬 Provide constructive feedback when rejecting'
+        ];
+
+        guidelinesList.forEach(guideline => {
+            const item = Utils.DOM.create('div', {
+                className: 'guideline-item'
+            }, guideline);
+            guidelines.appendChild(item);
+        });
+
+        section.appendChild(title);
+        section.appendChild(guidelines);
+
+        return section;
+    }
+
+    /**
+     * Create evidence images section with zoom capabilities
+     */
+    createEvidenceImagesSection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'evidence-images-section'
+        });
+
+        const header = Utils.DOM.create('div', {
+            className: 'images-section-header'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '🖼️ Evidence Images');
+
+        const imageCount = Utils.DOM.create('div', {
+            className: 'image-count'
+        }, `${order.evidence.images?.length || 1} image(s)`);
+
+        header.appendChild(title);
+        header.appendChild(imageCount);
+
+        const imagesContainer = Utils.DOM.create('div', {
+            className: 'evidence-images-container'
+        });
+
+        // Handle single image or multiple images
+        const images = order.evidence.images || [{ url: order.evidence.imageUrl, caption: 'Evidence Image' }];
+
+        images.forEach((image, index) => {
+            const imageWrapper = this.createEvidenceImageWrapper(image, index, order.id);
+            imagesContainer.appendChild(imageWrapper);
+        });
+
+        section.appendChild(header);
+        section.appendChild(imagesContainer);
+
+        return section;
+    }
+
+    /**
+     * Create evidence image wrapper with zoom and controls
+     */
+    createEvidenceImageWrapper(image, index, orderId) {
+        const wrapper = Utils.DOM.create('div', {
+            className: 'evidence-image-wrapper'
+        });
+
+        const imageContainer = Utils.DOM.create('div', {
+            className: 'evidence-image-container'
+        });
+
+        const img = Utils.DOM.create('img', {
+            src: image.url || image,
+            alt: `Evidence Image ${index + 1}`,
+            className: 'evidence-image',
+            loading: 'lazy'
+        });
+
+        // Image controls overlay
+        const controls = Utils.DOM.create('div', {
+            className: 'image-controls'
+        });
+
+        const zoomBtn = Utils.DOM.create('button', {
+            className: 'image-control-btn zoom-btn',
+            title: 'View Full Size',
+            onclick: () => this.showImageZoomModal(image.url || image, index)
+        }, '🔍');
+
+        const downloadBtn = Utils.DOM.create('button', {
+            className: 'image-control-btn download-btn',
+            title: 'Download Image',
+            onclick: () => this.downloadEvidenceImage(image.url || image, `evidence_${orderId}_${index + 1}`)
+        }, '💾');
+
+        controls.appendChild(zoomBtn);
+        controls.appendChild(downloadBtn);
+
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(controls);
+
+        // Image caption if available
+        if (image.caption) {
+            const caption = Utils.DOM.create('div', {
+                className: 'image-caption'
+            }, image.caption);
+            wrapper.appendChild(caption);
+        }
+
+        wrapper.appendChild(imageContainer);
+
+        return wrapper;
+    }
+
+    /**
+     * Create evidence notes section
+     */
+    createEvidenceNotesSection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'evidence-notes-section'
+        });
+
+        const header = Utils.DOM.create('div', {
+            className: 'notes-section-header'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '📝 Completion Notes');
+
+        const wordCount = Utils.DOM.create('div', {
+            className: 'word-count'
+        }, `${order.evidence.notes.split(' ').length} words`);
+
+        header.appendChild(title);
+        header.appendChild(wordCount);
+
+        const notesContainer = Utils.DOM.create('div', {
+            className: 'evidence-notes-container'
+        });
+
+        const notesText = Utils.DOM.create('div', {
+            className: 'evidence-notes-text'
+        }, order.evidence.notes);
+
+        notesContainer.appendChild(notesText);
+
+        section.appendChild(header);
+        section.appendChild(notesContainer);
+
+        return section;
+    }
+
+    /**
+     * Create review actions section
+     */
+    createReviewActionsSection(order) {
+        const section = Utils.DOM.create('div', {
+            className: 'review-actions-section'
+        });
+
+        const title = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, '⚡ Quick Actions');
+
+        const actionsGrid = Utils.DOM.create('div', {
+            className: 'review-actions-grid'
+        });
+
+        // Quick approval reasons
+        const approvalReasons = [
+            { text: 'Perfect completion', icon: '✅', action: () => this.quickApprove(order.id, 'Perfect completion') },
+            { text: 'Good quality work', icon: '👍', action: () => this.quickApprove(order.id, 'Good quality work') },
+            { text: 'Meets requirements', icon: '✔️', action: () => this.quickApprove(order.id, 'Meets requirements') }
+        ];
+
+        // Quick rejection reasons
+        const rejectionReasons = [
+            { text: 'Incomplete service', icon: '❌', action: () => this.quickReject(order.id, 'Service appears incomplete') },
+            { text: 'Poor evidence quality', icon: '📷', action: () => this.quickReject(order.id, 'Evidence quality is insufficient') },
+            { text: 'Instructions not followed', icon: '⚠️', action: () => this.quickReject(order.id, 'Special instructions were not followed') }
+        ];
+
+        // Create approval section
+        const approvalSection = Utils.DOM.create('div', {
+            className: 'quick-actions-group approval-actions'
+        });
+
+        const approvalTitle = Utils.DOM.create('h5', {}, 'Quick Approve');
+        approvalSection.appendChild(approvalTitle);
+
+        approvalReasons.forEach(reason => {
+            const btn = Utils.DOM.create('button', {
+                className: 'quick-action-btn approval-btn',
+                onclick: reason.action
+            }, `${reason.icon} ${reason.text}`);
+            approvalSection.appendChild(btn);
+        });
+
+        // Create rejection section
+        const rejectionSection = Utils.DOM.create('div', {
+            className: 'quick-actions-group rejection-actions'
+        });
+
+        const rejectionTitle = Utils.DOM.create('h5', {}, 'Quick Reject');
+        rejectionSection.appendChild(rejectionTitle);
+
+        rejectionReasons.forEach(reason => {
+            const btn = Utils.DOM.create('button', {
+                className: 'quick-action-btn rejection-btn',
+                onclick: reason.action
+            }, `${reason.icon} ${reason.text}`);
+            rejectionSection.appendChild(btn);
+        });
+
+        actionsGrid.appendChild(approvalSection);
+        actionsGrid.appendChild(rejectionSection);
+
+        section.appendChild(title);
+        section.appendChild(actionsGrid);
+
+        return section;
+    }
+
+    /**
+     * Create evidence review footer with main action buttons
+     */
+    createEvidenceReviewFooter(orderId) {
+        return [
+            Components.createButton({
+                text: '❌ Reject with Feedback',
+                variant: 'error',
+                size: 'md',
+                onClick: () => this.showDetailedRejectModal(orderId)
+            }),
+            Components.createButton({
+                text: '🔄 Request Resubmission',
+                variant: 'warning',
+                size: 'md',
+                onClick: () => this.requestEvidenceResubmission(orderId)
+            }),
+            Components.createButton({
+                text: '✅ Approve & Complete',
+                variant: 'success',
+                size: 'md',
+                onClick: () => this.showApprovalConfirmation(orderId)
+            })
+        ];
+    }
+
+    /**
+     * Initialize evidence review functionality
+     */
+    initializeEvidenceReview(orderId) {
+        // Initialize quality assessment scoring
+        this.initializeQualityScoring();
+        
+        // Set up image lazy loading
+        this.setupImageLazyLoading();
+        
+        // Initialize keyboard shortcuts
+        this.setupEvidenceReviewKeyboardShortcuts(orderId);
+        
+        // Track review start time for analytics
+        this.trackReviewStart(orderId);
+    }
+
+    /**
+     * Initialize quality scoring system
+     */
+    initializeQualityScoring() {
+        const checkboxes = document.querySelectorAll('.criterion-checkbox');
+        const scoreDisplay = document.getElementById('qualityScore');
+        const scoreProgress = document.getElementById('scoreProgress');
+
+        const updateScore = () => {
+            let totalScore = 0;
+            let maxScore = 0;
+
+            checkboxes.forEach(checkbox => {
+                const weight = parseInt(checkbox.dataset.weight);
+                maxScore += weight;
+                if (checkbox.checked) {
+                    totalScore += weight;
+                }
+            });
+
+            const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+            
+            if (scoreDisplay) scoreDisplay.textContent = `${totalScore}/${maxScore}`;
+            if (scoreProgress) {
+                scoreProgress.style.width = `${percentage}%`;
+                scoreProgress.className = `score-progress ${this.getScoreClass(percentage)}`;
+            }
+        };
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateScore);
+        });
+
+        updateScore(); // Initial calculation
+    }
+
+    /**
+     * Get score class based on percentage
+     */
+    getScoreClass(percentage) {
+        if (percentage >= 80) return 'score-excellent';
+        if (percentage >= 60) return 'score-good';
+        if (percentage >= 40) return 'score-fair';
+        return 'score-poor';
+    }
+
+    /**
+     * Setup image lazy loading
+     */
+    setupImageLazyLoading() {
+        const images = document.querySelectorAll('.evidence-image[loading="lazy"]');
+        
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src || img.src;
+                        img.classList.remove('lazy');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            images.forEach(img => imageObserver.observe(img));
+        }
+    }
+
+    /**
+     * Setup keyboard shortcuts for evidence review
+     */
+    setupEvidenceReviewKeyboardShortcuts(orderId) {
+        const handleKeyPress = (event) => {
+            // Only handle shortcuts when modal is open
+            if (!document.querySelector('.evidence-review-modal')) return;
+
+            switch (event.key.toLowerCase()) {
+                case 'a':
+                    if (event.ctrlKey || event.metaKey) {
+                        event.preventDefault();
+                        this.showApprovalConfirmation(orderId);
+                    }
+                    break;
+                case 'r':
+                    if (event.ctrlKey || event.metaKey) {
+                        event.preventDefault();
+                        this.showDetailedRejectModal(orderId);
+                    }
+                    break;
+                case 'z':
+                    if (event.ctrlKey || event.metaKey) {
+                        event.preventDefault();
+                        const firstImage = document.querySelector('.evidence-image');
+                        if (firstImage) {
+                            this.showImageZoomModal(firstImage.src, 0);
+                        }
+                    }
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // Clean up event listener when modal closes
+        const modal = document.querySelector('.evidence-review-modal');
+        if (modal) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && !document.querySelector('.evidence-review-modal')) {
+                        document.removeEventListener('keydown', handleKeyPress);
+                        observer.disconnect();
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
+    /**
+     * Show image zoom modal with enhanced viewing capabilities
+     */
+    showImageZoomModal(imageUrl, index = 0) {
+        const content = Utils.DOM.create('div', {
+            className: 'image-zoom-container'
+        });
+
+        const imageWrapper = Utils.DOM.create('div', {
+            className: 'zoom-image-wrapper'
+        });
+
+        const image = Utils.DOM.create('img', {
+            src: imageUrl,
+            alt: `Evidence Image ${index + 1}`,
+            className: 'zoom-image'
+        });
+
+        // Image controls
+        const controls = Utils.DOM.create('div', {
+            className: 'zoom-controls'
+        });
+
+        const zoomInBtn = Utils.DOM.create('button', {
+            className: 'zoom-control-btn',
+            onclick: () => this.adjustImageZoom(image, 1.2)
+        }, '🔍+');
+
+        const zoomOutBtn = Utils.DOM.create('button', {
+            className: 'zoom-control-btn',
+            onclick: () => this.adjustImageZoom(image, 0.8)
+        }, '🔍-');
+
+        const resetBtn = Utils.DOM.create('button', {
+            className: 'zoom-control-btn',
+            onclick: () => this.resetImageZoom(image)
+        }, '↻');
+
+        const downloadBtn = Utils.DOM.create('button', {
+            className: 'zoom-control-btn',
+            onclick: () => this.downloadEvidenceImage(imageUrl, `evidence_image_${index + 1}`)
+        }, '💾');
+
+        controls.appendChild(zoomInBtn);
+        controls.appendChild(zoomOutBtn);
+        controls.appendChild(resetBtn);
+        controls.appendChild(downloadBtn);
+
+        imageWrapper.appendChild(image);
+        content.appendChild(imageWrapper);
+        content.appendChild(controls);
+
+        Components.showModal({
+            title: `🔍 Evidence Image ${index + 1}`,
+            content: content,
+            size: 'full-screen',
+            closable: true,
+            className: 'image-zoom-modal'
+        });
+
+        // Enable image dragging for panning
+        this.enableImagePanning(image);
+    }
+
+    /**
+     * Adjust image zoom level
+     */
+    adjustImageZoom(image, factor) {
+        const currentScale = parseFloat(image.dataset.scale || '1');
+        const newScale = Math.max(0.1, Math.min(5, currentScale * factor));
+        
+        image.style.transform = `scale(${newScale})`;
+        image.dataset.scale = newScale.toString();
+    }
+
+    /**
+     * Reset image zoom to original size
+     */
+    resetImageZoom(image) {
+        image.style.transform = 'scale(1)';
+        image.dataset.scale = '1';
+        image.style.left = '0px';
+        image.style.top = '0px';
+    }
+
+    /**
+     * Enable image panning functionality
+     */
+    enableImagePanning(image) {
+        let isDragging = false;
+        let startX, startY, initialX = 0, initialY = 0;
+
+        image.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - initialX;
+            startY = e.clientY - initialY;
+            image.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            initialX = e.clientX - startX;
+            initialY = e.clientY - startY;
+            
+            image.style.left = `${initialX}px`;
+            image.style.top = `${initialY}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            image.style.cursor = 'grab';
+        });
+    }
+
+    /**
+     * Download evidence image
+     */
+    downloadEvidenceImage(imageUrl, filename) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        Utils.UI.showNotification('Image download started', 'success');
+    }
+
+    /**
+     * Quick approve with predefined reason
+     */
+    quickApprove(orderId, reason) {
+        this.approveOrderWithReason(orderId, reason);
+        Components.closeModal();
+    }
+
+    /**
+     * Quick reject with predefined reason
+     */
+    quickReject(orderId, reason) {
+        this.rejectOrderWithReason(orderId, reason);
+        Components.closeModal();
+    }
+
+    /**
+     * Show detailed rejection modal
+     */
+    showDetailedRejectModal(orderId) {
+        const content = Utils.DOM.create('div', {
+            className: 'detailed-reject-modal'
+        });
+
+        const title = Utils.DOM.create('h3', {}, 'Provide Detailed Feedback');
+
+        const reasonSelect = Components.createFormGroup({
+            label: 'Rejection Reason',
+            type: 'select',
+            name: 'rejectionReason',
+            required: true,
+            options: [
+                { value: '', label: 'Select a reason...' },
+                { value: 'incomplete', label: 'Service incomplete' },
+                { value: 'poor_evidence', label: 'Poor evidence quality' },
+                { value: 'instructions_ignored', label: 'Instructions not followed' },
+                { value: 'account_issues', label: 'Account safety concerns' },
+                { value: 'wrong_service', label: 'Wrong service provided' },
+                { value: 'other', label: 'Other (specify below)' }
+            ]
+        });
+
+        const feedbackTextarea = Components.createFormGroup({
+            label: 'Detailed Feedback',
+            type: 'textarea',
+            name: 'rejectionFeedback',
+            placeholder: 'Provide specific feedback to help the booster improve...',
+            required: true,
+            rows: 4
+        });
+
+        const allowResubmission = Components.createFormGroup({
+            label: 'Allow Resubmission',
+            type: 'checkbox',
+            name: 'allowResubmission',
+            checked: true,
+            help: 'Allow the booster to resubmit evidence after addressing the issues'
+        });
+
+        content.appendChild(title);
+        content.appendChild(reasonSelect);
+        content.appendChild(feedbackTextarea);
+        content.appendChild(allowResubmission);
+
+        Components.showModal({
+            title: '❌ Reject Evidence',
+            content: content,
+            size: 'medium',
             closable: true,
             footer: [
                 Components.createButton({
-                    text: 'Reject',
-                    variant: 'error',
-                    onClick: () => this.showRejectModal(orderId)
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
                 }),
                 Components.createButton({
-                    text: 'Approve',
-                    variant: 'success',
-                    onClick: () => this.approveOrder(orderId)
+                    text: 'Reject Order',
+                    variant: 'error',
+                    onClick: () => this.processDetailedRejection(orderId)
                 })
             ]
         });
     }
 
     /**
-     * Create evidence review content
+     * Show approval confirmation modal
      */
-    createEvidenceReviewContent(order) {
-        const container = Utils.DOM.create('div', {
-            className: 'evidence-review'
+    showApprovalConfirmation(orderId) {
+        const order = this.orders.get(orderId);
+        const content = Utils.DOM.create('div', {
+            className: 'approval-confirmation'
         });
 
-        // Order info
-        const orderInfo = Utils.DOM.create('div', {
-            className: 'review-order-info'
+        const message = Utils.DOM.create('p', {}, 
+            `Are you sure you want to approve this order and release payment of ${this.formatOrderAmount(order)} to the booster?`
+        );
+
+        const approvalNotes = Components.createFormGroup({
+            label: 'Approval Notes (Optional)',
+            type: 'textarea',
+            name: 'approvalNotes',
+            placeholder: 'Add any positive feedback or notes...',
+            rows: 3
         });
 
-        const infoTitle = Utils.DOM.create('h4', {}, 'Order Information');
-        const serviceTitle = Utils.DOM.create('p', {}, `Service: ${this.getServiceTitle(order.serviceId)}`);
-        const boosterName = Utils.DOM.create('p', {}, `Booster: ${this.getBoosterInfo(order.boosterId).textContent || 'Unknown'}`);
+        content.appendChild(message);
+        content.appendChild(approvalNotes);
 
-        orderInfo.appendChild(infoTitle);
-        orderInfo.appendChild(serviceTitle);
-        orderInfo.appendChild(boosterName);
-
-        // Evidence display
-        const evidenceDisplay = Utils.DOM.create('div', {
-            className: 'evidence-display'
+        Components.showModal({
+            title: '✅ Approve Evidence',
+            content: content,
+            size: 'medium',
+            closable: true,
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Approve & Release Payment',
+                    variant: 'success',
+                    onClick: () => this.processApproval(orderId)
+                })
+            ]
         });
-
-        const evidenceTitle = Utils.DOM.create('h4', {}, 'Submitted Evidence');
-
-        if (order.evidence.imageUrl) {
-            const imageContainer = Utils.DOM.create('div', {
-                className: 'evidence-image-container'
-            });
-
-            const image = Utils.DOM.create('img', {
-                src: order.evidence.imageUrl,
-                alt: 'Order Evidence',
-                className: 'evidence-image-large',
-                onclick: () => this.showImageModal(order.evidence.imageUrl)
-            });
-
-            const imageLabel = Utils.DOM.create('p', {
-                className: 'image-label'
-            }, 'Click image to view full size');
-
-            imageContainer.appendChild(image);
-            imageContainer.appendChild(imageLabel);
-            evidenceDisplay.appendChild(imageContainer);
-        }
-
-        if (order.evidence.notes) {
-            const notesContainer = Utils.DOM.create('div', {
-                className: 'evidence-notes-container'
-            });
-
-            const notesLabel = Utils.DOM.create('h5', {}, 'Completion Notes:');
-            const notes = Utils.DOM.create('div', {
-                className: 'evidence-notes-text'
-            }, order.evidence.notes);
-
-            notesContainer.appendChild(notesLabel);
-            notesContainer.appendChild(notes);
-            evidenceDisplay.appendChild(notesContainer);
-        }
-
-        const uploadedAt = Utils.DOM.create('p', {
-            className: 'evidence-timestamp'
-        }, `Submitted: ${Utils.Format.date(order.evidence.uploadedAt, 'datetime')}`);
-
-        evidenceDisplay.appendChild(uploadedAt);
-
-        container.appendChild(orderInfo);
-        container.appendChild(evidenceTitle);
-        container.appendChild(evidenceDisplay);
-
-        return container;
     }
 
     /**
-     * Show image in modal
+     * Request evidence resubmission
      */
-    showImageModal(imageUrl) {
-        const image = Utils.DOM.create('img', {
-            src: imageUrl,
-            alt: 'Evidence Image',
-            className: 'modal-image',
-            style: 'max-width: 100%; height: auto;'
+    requestEvidenceResubmission(orderId) {
+        const content = Utils.DOM.create('div', {
+            className: 'resubmission-request'
         });
 
-        Components.showModal({
-            title: 'Evidence Image',
-            content: image,
-            size: 'large',
-            closable: true
+        const message = Utils.DOM.create('p', {}, 
+            'Request the booster to resubmit evidence with specific improvements:'
+        );
+
+        const improvementsList = Components.createFormGroup({
+            label: 'Requested Improvements',
+            type: 'textarea',
+            name: 'improvements',
+            placeholder: 'Please provide:\n- Clearer screenshots\n- More detailed completion notes\n- Additional evidence of completion',
+            required: true,
+            rows: 4
         });
+
+        content.appendChild(message);
+        content.appendChild(improvementsList);
+
+        Components.showModal({
+            title: '🔄 Request Resubmission',
+            content: content,
+            size: 'medium',
+            closable: true,
+            footer: [
+                Components.createButton({
+                    text: 'Cancel',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                }),
+                Components.createButton({
+                    text: 'Send Request',
+                    variant: 'warning',
+                    onClick: () => this.processResubmissionRequest(orderId)
+                })
+            ]
+        });
+    }
+
+    /**
+     * Process detailed rejection
+     */
+    processDetailedRejection(orderId) {
+        const reason = document.querySelector('[name="rejectionReason"]').value;
+        const feedback = document.querySelector('[name="rejectionFeedback"]').value;
+        const allowResubmission = document.querySelector('[name="allowResubmission"]').checked;
+
+        if (!reason || !feedback) {
+            Utils.UI.showNotification('Please provide both reason and feedback', 'error');
+            return;
+        }
+
+        const order = this.orders.get(orderId);
+        const rejectionData = {
+            reason: reason,
+            feedback: feedback,
+            allowResubmission: allowResubmission,
+            reviewerId: 'current_user', // Replace with actual user ID
+            reviewedAt: new Date().toISOString()
+        };
+
+        // Add rejection data to order
+        order.rejectionData = rejectionData;
+        order.reviewNotes = feedback;
+
+        // Change order status
+        if (allowResubmission) {
+            this.changeOrderStatus(orderId, 'in_progress', `Evidence rejected: ${feedback}. Resubmission allowed.`);
+        } else {
+            this.changeOrderStatus(orderId, 'rejected', `Evidence rejected: ${feedback}`);
+        }
+
+        // Add to evidence history
+        this.addEvidenceHistoryEntry(orderId, 'rejected', rejectionData);
+
+        Components.closeModal(); // Close rejection modal
+        Components.closeModal(); // Close evidence review modal
+
+        Utils.UI.showNotification('Order rejected with feedback', 'success');
+    }
+
+    /**
+     * Process approval
+     */
+    processApproval(orderId) {
+        const approvalNotes = document.querySelector('[name="approvalNotes"]')?.value || '';
+        
+        const order = this.orders.get(orderId);
+        const approvalData = {
+            reviewerId: 'current_user', // Replace with actual user ID
+            reviewedAt: new Date().toISOString(),
+            notes: approvalNotes
+        };
+
+        // Add approval data to order
+        order.approvalData = approvalData;
+        if (approvalNotes) {
+            order.reviewNotes = approvalNotes;
+        }
+
+        // Change order status to completed
+        this.changeOrderStatus(orderId, 'completed', `Evidence approved. ${approvalNotes}`);
+
+        // Process payment release
+        this.releasePayment(orderId);
+
+        // Add to evidence history
+        this.addEvidenceHistoryEntry(orderId, 'approved', approvalData);
+
+        Components.closeModal(); // Close approval modal
+        Components.closeModal(); // Close evidence review modal
+
+        Utils.UI.showNotification('Order approved and payment released', 'success');
+    }
+
+    /**
+     * Process resubmission request
+     */
+    processResubmissionRequest(orderId) {
+        const improvements = document.querySelector('[name="improvements"]').value;
+
+        if (!improvements) {
+            Utils.UI.showNotification('Please specify the requested improvements', 'error');
+            return;
+        }
+
+        const order = this.orders.get(orderId);
+        const resubmissionData = {
+            requestedImprovements: improvements,
+            requesterId: 'current_user', // Replace with actual user ID
+            requestedAt: new Date().toISOString()
+        };
+
+        // Add resubmission request to order
+        order.resubmissionRequest = resubmissionData;
+
+        // Change order status back to in_progress
+        this.changeOrderStatus(orderId, 'in_progress', `Resubmission requested: ${improvements}`);
+
+        // Add to evidence history
+        this.addEvidenceHistoryEntry(orderId, 'resubmission_requested', resubmissionData);
+
+        Components.closeModal(); // Close resubmission modal
+        Components.closeModal(); // Close evidence review modal
+
+        Utils.UI.showNotification('Resubmission request sent to booster', 'success');
+    }
+
+    /**
+     * Add evidence history entry
+     */
+    addEvidenceHistoryEntry(orderId, action, data) {
+        const order = this.orders.get(orderId);
+        if (!order.evidenceHistory) {
+            order.evidenceHistory = [];
+        }
+
+        order.evidenceHistory.push({
+            action: action,
+            timestamp: new Date().toISOString(),
+            data: data
+        });
+    }
+
+    /**
+     * Release payment for approved order
+     */
+    releasePayment(orderId) {
+        const order = this.orders.get(orderId);
+        
+        // Add payment transaction to booster's wallet
+        if (typeof WalletManager !== 'undefined') {
+            WalletManager.addTransaction({
+                userId: order.boosterId,
+                type: 'earning',
+                amount: order.pricePaid,
+                currency: order.currencyUsed,
+                description: `Order #${order.id} completed`,
+                orderId: order.id,
+                status: 'completed'
+            });
+        }
+
+        // Update order completion timestamp
+        order.completedAt = new Date().toISOString();
+    }
+
+    /**
+     * Track review start for analytics
+     */
+    trackReviewStart(orderId) {
+        const order = this.orders.get(orderId);
+        if (!order.reviewAnalytics) {
+            order.reviewAnalytics = {};
+        }
+        
+        order.reviewAnalytics.reviewStarted = new Date().toISOString();
+        order.reviewAnalytics.reviewerId = 'current_user'; // Replace with actual user ID
+    }
+
+    /**
+     * Get booster display name
+     */
+    getBoosterDisplayName(boosterId) {
+        if (!boosterId) return 'Not Assigned';
+        
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const booster = MockData.users.find(u => u.id === boosterId);
+            return booster ? booster.discordUsername : 'Unknown Booster';
+        }
+        return 'Unknown Booster';
+    }
+
+    /**
+     * Get user display name
+     */
+    getUserDisplayName(userId) {
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const user = MockData.users.find(u => u.id === userId);
+            return user ? user.discordUsername : 'Unknown User';
+        }
+        return 'Unknown User';
+    }
+
+    /**
+     * Get status icon
+     */
+    getStatusIcon(status) {
+        const icons = {
+            'pending': '⏳',
+            'assigned': '👤',
+            'in_progress': '🔄',
+            'evidence_submitted': '📸',
+            'under_review': '🔍',
+            'completed': '✅',
+            'rejected': '❌'
+        };
+        return icons[status] || '❓';
+    }
+
+    /**
+     * Get status display text
+     */
+    getStatusDisplayText(status) {
+        const texts = {
+            'pending': 'Pending Assignment',
+            'assigned': 'Assigned to Booster',
+            'in_progress': 'In Progress',
+            'evidence_submitted': 'Evidence Submitted',
+            'under_review': 'Under Review',
+            'completed': 'Completed',
+            'rejected': 'Rejected'
+        };
+        return texts[status] || status;
+    }
+
+    /**
+     * Approve order with reason
+     */
+    approveOrderWithReason(orderId, reason) {
+        const order = this.orders.get(orderId);
+        order.reviewNotes = reason;
+        
+        this.changeOrderStatus(orderId, 'completed', reason);
+        this.releasePayment(orderId);
+        
+        Utils.UI.showNotification('Order approved successfully', 'success');
+    }
+
+    /**
+     * Reject order with reason
+     */
+    rejectOrderWithReason(orderId, reason) {
+        const order = this.orders.get(orderId);
+        order.reviewNotes = reason;
+        
+        this.changeOrderStatus(orderId, 'rejected', reason);
+        
+        Utils.UI.showNotification('Order rejected', 'warning');
     }
 
     /**
@@ -2335,18 +3522,22 @@ class OrderManager {
         }
 
         if (order.boosterId !== boosterId && boosterId !== 'current_user') {
-            throw new Error('Only the assigned booster can submit evidence for this order');
+            throw new Error('Only the assigned booster can submit evidence');
         }
 
-        if (!evidenceData.imageUrl || !evidenceData.notes) {
-            throw new Error('Evidence must include both image and completion notes');
+        // Validate evidence data
+        if (!evidenceData.imageUrl && !evidenceData.images) {
+            throw new Error('Evidence must include at least one image');
+        }
+
+        if (!evidenceData.notes || evidenceData.notes.trim().length < 10) {
+            throw new Error('Evidence notes must be at least 10 characters long');
         }
 
         try {
-            // Set evidence data
+            // Add evidence to order
             order.evidence = {
-                imageUrl: evidenceData.imageUrl,
-                notes: evidenceData.notes,
+                ...evidenceData,
                 uploadedAt: new Date().toISOString()
             };
 
@@ -2372,9 +3563,27 @@ class OrderManager {
     }
 
     /**
-     * Get orders requiring attention (for notifications)
+     * Get overdue orders
      */
-    getOrdersRequiringAttention() {
+    getOverdueOrders() {
+        const now = new Date();
+        const overdueThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
+        return Array.from(this.orders.values()).filter(order => {
+            if (order.status === 'completed' || order.status === 'rejected') {
+                return false;
+            }
+            
+            const orderDate = new Date(order.createdAt);
+            return (now - orderDate) > overdueThreshold;
+        });
+    }
+
+    /**
+     * Generate comprehensive status report
+     */
+    generateStatusReport() {
+        const stats = this.getOrderStatusStatistics();
         const attention = {
             pendingAssignment: this.getOrdersByStatus('pending'),
             evidenceToReview: this.getOrdersByStatus('under_review'),
@@ -2382,40 +3591,22 @@ class OrderManager {
             overdueOrders: this.getOverdueOrders()
         };
 
-        return attention;
-    }
+        const completionRate = stats.total > 0 
+            ? Math.round(((stats.byStatus.completed || 0) / stats.total) * 100)
+            : 0;
 
-    /**
-     * Get overdue orders (in progress for more than expected time)
-     */
-    getOverdueOrders() {
-        const now = new Date();
-        const overdueThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-        return Array.from(this.orders.values()).filter(order => {
-            if (order.status !== 'in_progress') return false;
-            
-            const startTime = new Date(order.startedAt);
-            const timeDiff = now - startTime;
-            
-            return timeDiff > overdueThreshold;
-        });
-    }
-
-    /**
-     * Generate order status report
-     */
-    generateStatusReport() {
-        const stats = this.getOrderStatusStatistics();
-        const attention = this.getOrdersRequiringAttention();
-        
         return {
+            timestamp: new Date().toISOString(),
             summary: {
                 total: stats.total,
-                completed: stats.byStatus.completed || 0,
-                inProgress: stats.byStatus.in_progress || 0,
                 pending: stats.byStatus.pending || 0,
-                completionRate: stats.total > 0 ? ((stats.byStatus.completed || 0) / stats.total * 100).toFixed(1) : 0
+                assigned: stats.byStatus.assigned || 0,
+                inProgress: stats.byStatus.in_progress || 0,
+                evidenceSubmitted: stats.byStatus.evidence_submitted || 0,
+                underReview: stats.byStatus.under_review || 0,
+                completed: stats.byStatus.completed || 0,
+                rejected: stats.byStatus.rejected || 0,
+                completionRate: completionRate
             },
             attention: {
                 pendingAssignment: attention.pendingAssignment.length,
@@ -2426,28 +3617,12 @@ class OrderManager {
             timeRange: stats.byTimeRange
         };
     }
-
-    /**
-     * Export order data with timeline information
-     */
-    exportOrderWithTimeline(orderId) {
-        const order = this.orders.get(orderId);
-        if (!order) return null;
-
-        return {
-            ...order,
-            serviceTitle: this.getServiceTitle(order.serviceId),
-            buyerInfo: this.getBuyerInfo(order.buyerId),
-            boosterInfo: this.getBoosterInfo(order.boosterId),
-            workflowValidation: this.validateOrderWorkflow(orderId),
-            statusHistory: order.timeline || []
-        };
-    }
 }
 
 // Create global instance
-const OrderManager_Instance = new OrderManager();
-
-// Export for use in other modules
-window.OrderManager = OrderManager;
-window.OrderManager_Instance = OrderManager_Instance;
+let OrderManager_Instance;
+if (typeof window !== 'undefined') {
+    OrderManager_Instance = new OrderManager();
+    window.OrderManager = OrderManager;
+    window.OrderManager_Instance = OrderManager_Instance;
+}

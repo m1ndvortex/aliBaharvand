@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evidence Review System Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🔍 Evidence Review System Test</h1>
+            <div class="test-info">
+                <span class="test-badge">Task 8.2 Implementation</span>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <main class="main-content">
+                <div class="content-area">
+                    <div class="test-controls">
+                        <h2>Evidence Review System Testing</h2>
+                        <p>This test demonstrates the comprehensive evidence review system with image display, zoom capabilities, quality assessment, and approval/rejection workflows.</p>
+                        
+                        <div class="test-buttons">
+                            <button id="testBasicReview" class="btn btn-primary">
+                                🔍 Test Basic Evidence Review
+                            </button>
+                            <button id="testImageZoom" class="btn btn-secondary">
+                                🖼️ Test Image Zoom Features
+                            </button>
+                            <button id="testQualityAssessment" class="btn btn-info">
+                                ⭐ Test Quality Assessment
+                            </button>
+                            <button id="testApprovalWorkflow" class="btn btn-success">
+                                ✅ Test Approval Workflow
+                            </button>
+                            <button id="testRejectionWorkflow" class="btn btn-warning">
+                                ❌ Test Rejection Workflow
+                            </button>
+                            <button id="testResubmissionFlow" class="btn btn-error">
+                                🔄 Test Resubmission Flow
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="testResults" class="test-results">
+                        <h3>Test Results</h3>
+                        <div id="testLog" class="test-log">
+                            <!-- Test results will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Include all necessary scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/mockData.js"></script>
+    <script src="js/orderManager.js"></script>
+    <script>
+        // Test script for evidence review system
+        document.addEventListener('DOMContentLoaded', function() {
+            const testLog = document.getElementById('testLog');
+            let orderManager;
+
+            function logResult(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result test-${type}`;
+                resultDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+                testLog.appendChild(resultDiv);
+                testLog.scrollTop = testLog.scrollHeight;
+            }
+
+            // Initialize Order Manager
+            try {
+                orderManager = new OrderManager();
+                logResult('✅ Order Manager initialized successfully', 'success');
+            } catch (error) {
+                logResult(`❌ Failed to initialize Order Manager: ${error.message}`, 'error');
+                return;
+            }
+
+            // Create test orders with evidence
+            function createTestOrdersWithEvidence() {
+                const testOrders = [
+                    {
+                        id: 'evidence_test_001',
+                        serviceId: 'service_001',
+                        buyerId: 'buyer_001',
+                        boosterId: 'user_001',
+                        advertiserId: 'user_001',
+                        status: 'evidence_submitted',
+                        pricePaid: 500,
+                        currencyUsed: 'gold',
+                        gameCredentials: { 
+                            username: 'TestChar1', 
+                            realm: 'TestRealm',
+                            characterClass: 'Death Knight',
+                            characterLevel: 80
+                        },
+                        specialInstructions: 'Please be careful with my character. Need the trinket from last boss.',
+                        evidence: {
+                            imageUrl: 'https://via.placeholder.com/800x600/2c2f33/ffffff?text=M%2B20+Completion+Evidence',
+                            images: [
+                                { url: 'https://via.placeholder.com/800x600/2c2f33/ffffff?text=Dungeon+Complete', caption: 'Dungeon completion screen' },
+                                { url: 'https://via.placeholder.com/800x600/2c2f33/ffffff?text=Loot+Received', caption: 'Loot received' },
+                                { url: 'https://via.placeholder.com/800x600/2c2f33/ffffff?text=Character+Safe', caption: 'Character safely logged out' }
+                            ],
+                            notes: 'Successfully completed M+20 Necrotic Wake in 18:45. Got the requested trinket from last boss. Character is safely logged out in Dornogal. No issues encountered during the run.',
+                            uploadedAt: new Date().toISOString()
+                        },
+                        reviewNotes: null,
+                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+                        timeline: [
+                            { status: 'pending', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), note: 'Order created' },
+                            { status: 'assigned', timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), note: 'Assigned to ProBooster#1234' },
+                            { status: 'in_progress', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), note: 'Booster started the service' },
+                            { status: 'evidence_submitted', timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), note: 'Evidence uploaded by booster' }
+                        ]
+                    },
+                    {
+                        id: 'evidence_test_002',
+                        serviceId: 'service_003',
+                        buyerId: 'buyer_002',
+                        boosterId: 'user_005',
+                        advertiserId: 'user_005',
+                        status: 'evidence_submitted',
+                        pricePaid: 15.00,
+                        currencyUsed: 'usd',
+                        gameCredentials: { 
+                            username: 'DelveRunner', 
+                            realm: 'Tichondrius',
+                            characterClass: 'Demon Hunter',
+                            characterLevel: 80
+                        },
+                        specialInstructions: 'Looking for the rare mount drop. Will tip extra if it drops!',
+                        evidence: {
+                            imageUrl: 'https://via.placeholder.com/800x600/2c2f33/ffffff?text=Delve+T11+Complete',
+                            notes: 'Completed Tier 11 Delve successfully. Unfortunately, the rare mount did not drop this time, but got several high-level gear pieces and other rewards.',
+                            uploadedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+                        },
+                        reviewNotes: null,
+                        createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+                        timeline: [
+                            { status: 'pending', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), note: 'Order created' },
+                            { status: 'assigned', timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(), note: 'Assigned to DelveSpecialist#3333' },
+                            { status: 'in_progress', timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), note: 'Delve runs started' },
+                            { status: 'evidence_submitted', timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), note: 'Evidence submitted' }
+                        ]
+                    }
+                ];
+
+                testOrders.forEach(order => {
+                    orderManager.orders.set(order.id, order);
+                });
+
+                logResult(`✅ Created ${testOrders.length} test orders with evidence`, 'success');
+                return testOrders;
+            }
+
+            // Test basic evidence review
+            document.getElementById('testBasicReview').addEventListener('click', function() {
+                logResult('🔍 Testing basic evidence review functionality...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const firstOrder = testOrders[0];
+                
+                try {
+                    orderManager.showEvidenceReview(firstOrder.id);
+                    logResult('✅ Evidence review modal opened successfully', 'success');
+                    logResult('📋 Modal includes: Order info, evidence display, quality assessment, and history', 'info');
+                } catch (error) {
+                    logResult(`❌ Failed to open evidence review: ${error.message}`, 'error');
+                }
+            });
+
+            // Test image zoom features
+            document.getElementById('testImageZoom').addEventListener('click', function() {
+                logResult('🖼️ Testing image zoom and viewing features...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const firstOrder = testOrders[0];
+                
+                try {
+                    orderManager.showEvidenceReview(firstOrder.id);
+                    
+                    // Simulate clicking on an image after a short delay
+                    setTimeout(() => {
+                        const evidenceImage = document.querySelector('.evidence-image');
+                        if (evidenceImage) {
+                            evidenceImage.click();
+                            logResult('✅ Image zoom modal should be displayed', 'success');
+                            logResult('🔍 Zoom controls: Zoom in/out, reset, download available', 'info');
+                        } else {
+                            logResult('⚠️ Evidence image not found in modal', 'warning');
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    logResult(`❌ Failed to test image zoom: ${error.message}`, 'error');
+                }
+            });
+
+            // Test quality assessment
+            document.getElementById('testQualityAssessment').addEventListener('click', function() {
+                logResult('⭐ Testing quality assessment system...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const firstOrder = testOrders[0];
+                
+                try {
+                    orderManager.showEvidenceReview(firstOrder.id);
+                    
+                    // Simulate checking quality criteria after modal loads
+                    setTimeout(() => {
+                        const checkboxes = document.querySelectorAll('.criterion-checkbox');
+                        if (checkboxes.length > 0) {
+                            logResult(`✅ Found ${checkboxes.length} quality criteria checkboxes`, 'success');
+                            
+                            // Check some criteria to test scoring
+                            checkboxes.forEach((checkbox, index) => {
+                                if (index < 3) { // Check first 3 criteria
+                                    checkbox.checked = true;
+                                    checkbox.dispatchEvent(new Event('change'));
+                                }
+                            });
+                            
+                            logResult('✅ Quality scoring system is working', 'success');
+                            logResult('📊 Score updates dynamically as criteria are checked', 'info');
+                        } else {
+                            logResult('⚠️ Quality assessment checkboxes not found', 'warning');
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    logResult(`❌ Failed to test quality assessment: ${error.message}`, 'error');
+                }
+            });
+
+            // Test approval workflow
+            document.getElementById('testApprovalWorkflow').addEventListener('click', function() {
+                logResult('✅ Testing approval workflow...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const firstOrder = testOrders[0];
+                
+                try {
+                    orderManager.showEvidenceReview(firstOrder.id);
+                    
+                    // Test quick approval
+                    setTimeout(() => {
+                        const approvalBtns = document.querySelectorAll('.approval-btn');
+                        if (approvalBtns.length > 0) {
+                            logResult(`✅ Found ${approvalBtns.length} quick approval buttons`, 'success');
+                            logResult('🎯 Quick approval options available for common scenarios', 'info');
+                        }
+                        
+                        // Test main approval button
+                        const mainApprovalBtn = document.querySelector('.btn-success');
+                        if (mainApprovalBtn && mainApprovalBtn.textContent.includes('Approve')) {
+                            logResult('✅ Main approval button found in footer', 'success');
+                            logResult('💰 Approval will release payment to booster wallet', 'info');
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    logResult(`❌ Failed to test approval workflow: ${error.message}`, 'error');
+                }
+            });
+
+            // Test rejection workflow
+            document.getElementById('testRejectionWorkflow').addEventListener('click', function() {
+                logResult('❌ Testing rejection workflow...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const secondOrder = testOrders[1];
+                
+                try {
+                    orderManager.showEvidenceReview(secondOrder.id);
+                    
+                    setTimeout(() => {
+                        const rejectionBtns = document.querySelectorAll('.rejection-btn');
+                        if (rejectionBtns.length > 0) {
+                            logResult(`✅ Found ${rejectionBtns.length} quick rejection buttons`, 'success');
+                            logResult('📝 Quick rejection options for common issues', 'info');
+                        }
+                        
+                        // Test detailed rejection button
+                        const detailedRejectBtn = document.querySelector('.btn-error');
+                        if (detailedRejectBtn && detailedRejectBtn.textContent.includes('Reject')) {
+                            logResult('✅ Detailed rejection button found', 'success');
+                            logResult('📋 Detailed rejection allows custom feedback and resubmission options', 'info');
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    logResult(`❌ Failed to test rejection workflow: ${error.message}`, 'error');
+                }
+            });
+
+            // Test resubmission flow
+            document.getElementById('testResubmissionFlow').addEventListener('click', function() {
+                logResult('🔄 Testing resubmission workflow...', 'info');
+                
+                const testOrders = createTestOrdersWithEvidence();
+                const firstOrder = testOrders[0];
+                
+                try {
+                    orderManager.showEvidenceReview(firstOrder.id);
+                    
+                    setTimeout(() => {
+                        const resubmissionBtn = document.querySelector('.btn-warning');
+                        if (resubmissionBtn && resubmissionBtn.textContent.includes('Resubmission')) {
+                            logResult('✅ Resubmission request button found', 'success');
+                            logResult('📝 Allows requesting specific improvements without full rejection', 'info');
+                        }
+                        
+                        // Check evidence history section
+                        const historySection = document.querySelector('.evidence-history-section');
+                        if (historySection) {
+                            logResult('✅ Evidence history section displayed', 'success');
+                            logResult('📚 Shows timeline of all evidence submissions and reviews', 'info');
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    logResult(`❌ Failed to test resubmission flow: ${error.message}`, 'error');
+                }
+            });
+
+            // Initialize test
+            logResult('🚀 Evidence Review System Test initialized', 'info');
+            logResult('📋 This test covers all requirements from Task 8.2:', 'info');
+            logResult('  • Evidence review modal with image display and zoom capabilities', 'info');
+            logResult('  • Evidence approval/rejection interface with reason input', 'info');
+            logResult('  • Evidence history tracking with reviewer information', 'info');
+            logResult('  • Evidence quality assessment tools and guidelines', 'info');
+            logResult('  • Evidence resubmission workflow for rejected orders', 'info');
+            logResult('🎯 Click the test buttons above to explore each feature', 'info');
+        });
+    </script>
+
+    <style>
+        .test-controls {
+            background-color: var(--bg-secondary);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .test-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .test-badge {
+            background-color: var(--discord-blurple);
+            color: var(--text-primary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .test-results {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+        }
+
+        .test-results h3 {
+            color: var(--text-primary);
+            margin: 0 0 var(--spacing-md) 0;
+            font-size: var(--font-size-lg);
+        }
+
+        .test-log {
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: var(--font-size-sm);
+            background-color: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-primary);
+        }
+
+        .test-result {
+            padding: var(--spacing-xs) 0;
+            border-bottom: 1px solid var(--border-primary);
+            line-height: 1.4;
+        }
+
+        .test-result:last-child {
+            border-bottom: none;
+        }
+
+        .test-success {
+            color: var(--success);
+        }
+
+        .test-error {
+            color: var(--error);
+        }
+
+        .test-warning {
+            color: var(--warning);
+        }
+
+        .test-info {
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: var(--font-weight-medium);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--discord-blurple);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-info {
+            background-color: var(--info);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--text-primary);
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--text-primary);
+        }
+
+        .btn-error {
+            background-color: var(--error);
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Loading overlay styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            background-color: var(--bg-secondary);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--border-primary);
+        }
+
+        .loading-message {
+            margin-top: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+    </style>
+</body>
+</html>

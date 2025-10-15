@@ -705,3 +705,333 @@ window.Utils = {
     Format,
     HTTP
 };
+
+// UI Utilities
+const UI = {
+    /**
+     * Show notification
+     * @param {string} message - Notification message
+     * @param {string} type - Notification type ('success', 'error', 'warning', 'info')
+     * @param {number} duration - Duration in milliseconds (0 for persistent)
+     */
+    showNotification(message, type = 'info', duration = 5000) {
+        // Create notification container if it doesn't exist
+        let container = document.querySelector('.notification-container');
+        if (!container) {
+            container = DOM.create('div', {
+                className: 'notification-container'
+            });
+            document.body.appendChild(container);
+        }
+
+        // Create notification element
+        const notification = DOM.create('div', {
+            className: `notification notification-${type}`
+        });
+
+        // Create notification content
+        const icon = this.getNotificationIcon(type);
+        const content = DOM.create('div', {
+            className: 'notification-content'
+        });
+
+        const iconElement = DOM.create('div', {
+            className: 'notification-icon'
+        }, icon);
+
+        const messageElement = DOM.create('div', {
+            className: 'notification-message'
+        }, message);
+
+        const closeButton = DOM.create('button', {
+            className: 'notification-close',
+            onclick: () => this.removeNotification(notification)
+        }, '×');
+
+        content.appendChild(iconElement);
+        content.appendChild(messageElement);
+        notification.appendChild(content);
+        notification.appendChild(closeButton);
+
+        // Add to container
+        container.appendChild(notification);
+
+        // Trigger show animation
+        setTimeout(() => {
+            DOM.addClass(notification, 'show');
+        }, 10);
+
+        // Auto-remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                this.removeNotification(notification);
+            }, duration);
+        }
+
+        return notification;
+    },
+
+    /**
+     * Remove notification
+     * @param {Element} notification - Notification element to remove
+     */
+    removeNotification(notification) {
+        DOM.removeClass(notification, 'show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    },
+
+    /**
+     * Get notification icon based on type
+     * @param {string} type - Notification type
+     * @returns {string} - Icon character
+     */
+    getNotificationIcon(type) {
+        const icons = {
+            'success': '✅',
+            'error': '❌',
+            'warning': '⚠️',
+            'info': 'ℹ️'
+        };
+        return icons[type] || icons.info;
+    },
+
+    /**
+     * Show loading spinner
+     * @param {Element} target - Target element to show spinner in
+     * @param {string} message - Loading message
+     * @returns {Element} - Spinner element
+     */
+    showLoading(target, message = 'Loading...') {
+        const spinner = DOM.create('div', {
+            className: 'loading-overlay'
+        });
+
+        const spinnerContent = DOM.create('div', {
+            className: 'loading-content'
+        });
+
+        const spinnerIcon = DOM.create('div', {
+            className: 'loading-spinner'
+        });
+
+        const spinnerMessage = DOM.create('div', {
+            className: 'loading-message'
+        }, message);
+
+        spinnerContent.appendChild(spinnerIcon);
+        spinnerContent.appendChild(spinnerMessage);
+        spinner.appendChild(spinnerContent);
+
+        target.appendChild(spinner);
+        return spinner;
+    },
+
+    /**
+     * Hide loading spinner
+     * @param {Element} spinner - Spinner element to remove
+     */
+    hideLoading(spinner) {
+        if (spinner && spinner.parentNode) {
+            spinner.parentNode.removeChild(spinner);
+        }
+    },
+
+    /**
+     * Show confirmation dialog
+     * @param {string} message - Confirmation message
+     * @param {string} title - Dialog title
+     * @returns {Promise<boolean>} - Promise that resolves to user's choice
+     */
+    showConfirmation(message, title = 'Confirm') {
+        return new Promise((resolve) => {
+            const overlay = DOM.create('div', {
+                className: 'confirmation-overlay'
+            });
+
+            const dialog = DOM.create('div', {
+                className: 'confirmation-dialog'
+            });
+
+            const header = DOM.create('div', {
+                className: 'confirmation-header'
+            });
+
+            const titleElement = DOM.create('h3', {
+                className: 'confirmation-title'
+            }, title);
+
+            const messageElement = DOM.create('div', {
+                className: 'confirmation-message'
+            }, message);
+
+            const actions = DOM.create('div', {
+                className: 'confirmation-actions'
+            });
+
+            const cancelButton = DOM.create('button', {
+                className: 'btn btn-secondary',
+                onclick: () => {
+                    document.body.removeChild(overlay);
+                    resolve(false);
+                }
+            }, 'Cancel');
+
+            const confirmButton = DOM.create('button', {
+                className: 'btn btn-primary',
+                onclick: () => {
+                    document.body.removeChild(overlay);
+                    resolve(true);
+                }
+            }, 'Confirm');
+
+            actions.appendChild(cancelButton);
+            actions.appendChild(confirmButton);
+
+            header.appendChild(titleElement);
+            dialog.appendChild(header);
+            dialog.appendChild(messageElement);
+            dialog.appendChild(actions);
+            overlay.appendChild(dialog);
+
+            document.body.appendChild(overlay);
+
+            // Focus confirm button
+            confirmButton.focus();
+
+            // Handle escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.removeEventListener('keydown', handleEscape);
+                    resolve(false);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+        });
+    },
+
+    /**
+     * Show tooltip
+     * @param {Element} target - Target element
+     * @param {string} text - Tooltip text
+     * @param {string} position - Tooltip position ('top', 'bottom', 'left', 'right')
+     */
+    showTooltip(target, text, position = 'top') {
+        // Remove existing tooltip
+        this.hideTooltip();
+
+        const tooltip = DOM.create('div', {
+            className: `tooltip tooltip-${position}`,
+            id: 'active-tooltip'
+        }, text);
+
+        document.body.appendChild(tooltip);
+
+        // Position tooltip
+        const targetRect = target.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        let top, left;
+
+        switch (position) {
+            case 'top':
+                top = targetRect.top - tooltipRect.height - 8;
+                left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+                break;
+            case 'bottom':
+                top = targetRect.bottom + 8;
+                left = targetRect.left + (targetRect.width - tooltipRect.width) / 2;
+                break;
+            case 'left':
+                top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
+                left = targetRect.left - tooltipRect.width - 8;
+                break;
+            case 'right':
+                top = targetRect.top + (targetRect.height - tooltipRect.height) / 2;
+                left = targetRect.right + 8;
+                break;
+        }
+
+        tooltip.style.top = `${top + window.scrollY}px`;
+        tooltip.style.left = `${left + window.scrollX}px`;
+
+        // Show tooltip
+        setTimeout(() => {
+            DOM.addClass(tooltip, 'show');
+        }, 10);
+    },
+
+    /**
+     * Hide tooltip
+     */
+    hideTooltip() {
+        const tooltip = document.getElementById('active-tooltip');
+        if (tooltip) {
+            DOM.removeClass(tooltip, 'show');
+            setTimeout(() => {
+                if (tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+            }, 200);
+        }
+    },
+
+    /**
+     * Create progress bar
+     * @param {number} progress - Progress percentage (0-100)
+     * @param {string} className - Additional CSS class
+     * @returns {Element} - Progress bar element
+     */
+    createProgressBar(progress = 0, className = '') {
+        const progressBar = DOM.create('div', {
+            className: `progress-bar ${className}`
+        });
+
+        const progressFill = DOM.create('div', {
+            className: 'progress-fill',
+            style: `width: ${Math.max(0, Math.min(100, progress))}%`
+        });
+
+        const progressText = DOM.create('div', {
+            className: 'progress-text'
+        }, `${Math.round(progress)}%`);
+
+        progressBar.appendChild(progressFill);
+        progressBar.appendChild(progressText);
+
+        return progressBar;
+    },
+
+    /**
+     * Update progress bar
+     * @param {Element} progressBar - Progress bar element
+     * @param {number} progress - New progress percentage
+     */
+    updateProgressBar(progressBar, progress) {
+        const fill = progressBar.querySelector('.progress-fill');
+        const text = progressBar.querySelector('.progress-text');
+
+        if (fill) {
+            fill.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+        }
+        if (text) {
+            text.textContent = `${Math.round(progress)}%`;
+        }
+    }
+};
+
+// Update the main Utils export to include UI utilities
+window.Utils = {
+    DOM,
+    Events,
+    Animation,
+    Storage,
+    Validation,
+    Format,
+    HTTP,
+    UI
+};
