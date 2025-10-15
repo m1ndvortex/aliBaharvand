@@ -7,21 +7,22 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="stylesheet" href="styles/theme-optimization.css">
 </head>
 <body>
     <div class="dashboard-container">
         <!-- Header with role tabs and workspace switcher -->
         <header class="dashboard-header" role="banner">
             <div class="role-tabs" role="tablist" aria-label="User roles">
-                <button class="role-tab active" data-role="advertiser" role="tab" aria-selected="true" tabindex="0">
+                <button class="role-tab active" data-role="advertiser" role="tab" aria-selected="true" tabindex="0" aria-label="Advertiser Dashboard">
                     <span class="tab-icon" aria-hidden="true">📊</span>
                     <span class="tab-text">Advertiser</span>
                 </button>
-                <button class="role-tab" data-role="team_advertiser" role="tab" aria-selected="false" tabindex="-1">
+                <button class="role-tab" data-role="team_advertiser" role="tab" aria-selected="false" tabindex="-1" aria-label="Team Advertiser Dashboard">
                     <span class="tab-icon" aria-hidden="true">👥</span>
                     <span class="tab-text">Team Advertiser</span>
                 </button>
-                <button class="role-tab" data-role="booster" role="tab" aria-selected="false" tabindex="-1">
+                <button class="role-tab" data-role="booster" role="tab" aria-selected="false" tabindex="-1" aria-label="Booster Dashboard">
                     <span class="tab-icon" aria-hidden="true">🎮</span>
                     <span class="tab-text">Booster</span>
                 </button>
@@ -36,9 +37,17 @@
             </div>
         </header>
 
+        <!-- Mobile navigation toggle -->
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="nav-toggle-icon">☰</span>
+        </button>
+
+        <!-- Sidebar backdrop for mobile -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
         <!-- Main dashboard content -->
         <div class="dashboard-content">
-            <aside class="sidebar" role="complementary" aria-label="Navigation sidebar">
+            <aside class="sidebar" id="sidebar" role="complementary" aria-label="Navigation sidebar">
                 <nav class="sidebar-nav" role="menu" aria-label="Main navigation">
                     <!-- Dynamic sidebar content will be populated by JavaScript -->
                 </nav>
@@ -77,6 +86,8 @@
     <script src="js/mockDataTest.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/state.js"></script>
+    <script src="js/themeOptimizer.js"></script>
+    <script src="js/responsiveManager.js"></script>
     <script src="js/components.js"></script>
     <script src="js/serviceManager.js"></script>
     <script src="js/raidBookingManager.js"></script>

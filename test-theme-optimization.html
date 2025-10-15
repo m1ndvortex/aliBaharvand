@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Optimization Test - Service Provider Dashboard</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="stylesheet" href="styles/theme-optimization.css">
+    
+    <style>
+        /* Test-specific styles */
+        .test-section {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+        }
+        
+        .test-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-primary);
+            padding-bottom: var(--spacing-sm);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .demo-card {
+            padding: var(--spacing-md);
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+            transition: all var(--animation-duration-normal) var(--animation-easing-smooth);
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .demo-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .loading-demo {
+            height: 200px;
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: var(--spacing-md);
+        }
+        
+        .animation-demo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, var(--discord-blurple), var(--success));
+            border-radius: var(--radius-md);
+            margin: var(--spacing-md) auto;
+            cursor: pointer;
+            transition: all var(--animation-duration-normal) var(--animation-easing-smooth);
+        }
+        
+        .animation-demo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+        }
+        
+        .contrast-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .contrast-item {
+            padding: var(--spacing-md);
+            text-align: center;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .contrast-primary {
+            background-color: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .contrast-secondary {
+            background-color: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+        
+        .contrast-success {
+            background-color: var(--success);
+            color: var(--bg-primary);
+        }
+        
+        .contrast-error {
+            background-color: var(--error);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="role-tabs">
+                <button class="role-tab active" data-role="advertiser" aria-label="Advertiser Dashboard">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-text">Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="team_advertiser" aria-label="Team Advertiser Dashboard">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text">Team Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="booster" aria-label="Booster Dashboard">
+                    <span class="tab-icon">🎮</span>
+                    <span class="tab-text">Booster</span>
+                </button>
+            </div>
+            
+            <div class="workspace-switcher">
+                <button class="workspace-btn active" data-workspace="personal">
+                    <span class="workspace-icon">👤</span>
+                    <span class="workspace-text">Personal</span>
+                    <span class="workspace-indicator personal-indicator"></span>
+                </button>
+                <button class="workspace-btn" data-workspace="team">
+                    <span class="workspace-icon">👥</span>
+                    <span class="workspace-text">Team</span>
+                    <span class="workspace-indicator team-indicator"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="dashboard-content">
+            <main class="main-content">
+                <div class="content-area">
+                    <h1>🎨 Theme Optimization Test</h1>
+                    <p>This page demonstrates the enhanced Discord-inspired theme system with accessibility features, customization options, loading states, and smooth animations.</p>
+
+                    <!-- Theme Customization Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">🎨 Theme Customization</h2>
+                        <p>Use the theme customizer button (🎨) on the right side of the screen to:</p>
+                        <ul>
+                            <li>Switch between theme presets (Discord Blue, Forest Green, Royal Purple, etc.)</li>
+                            <li>Adjust hue, saturation, and lightness</li>
+                            <li>Toggle reduced motion for accessibility</li>
+                            <li>Enable high contrast mode</li>
+                            <li>Reset to default settings</li>
+                        </ul>
+                        
+                        <div class="demo-grid">
+                            <div class="demo-card hover-lift">
+                                <h3>Color Adaptation</h3>
+                                <p>All colors adapt to your theme settings while maintaining proper contrast ratios.</p>
+                            </div>
+                            <div class="demo-card hover-scale">
+                                <h3>Responsive Design</h3>
+                                <p>Theme works consistently across all device sizes and orientations.</p>
+                            </div>
+                            <div class="demo-card hover-glow">
+                                <h3>Accessibility</h3>
+                                <p>WCAG AA compliant contrast ratios and reduced motion support.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Loading States Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">⏳ Loading States & Skeleton Screens</h2>
+                        <p>Enhanced loading indicators and skeleton screens for better user experience:</p>
+                        
+                        <div class="demo-buttons">
+                            <button class="btn-primary" onclick="demoSpinnerLoading()">Show Spinner</button>
+                            <button class="btn-secondary" onclick="demoDotLoading()">Show Dots</button>
+                            <button class="btn-info" onclick="demoPulseLoading()">Show Pulse</button>
+                            <button class="btn-success" onclick="demoSkeletonLoading()">Show Skeleton</button>
+                            <button class="btn-warning" onclick="clearLoadingDemo()">Clear Loading</button>
+                        </div>
+                        
+                        <div class="loading-demo" id="loadingDemo">
+                            <p>Click buttons above to see different loading states</p>
+                        </div>
+                    </section>
+
+                    <!-- Animation Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">✨ Smooth Animations</h2>
+                        <p>Hover over the box below to see smooth transitions and animations:</p>
+                        
+                        <div class="animation-demo" onclick="triggerBounceAnimation(this)"></div>
+                        
+                        <div class="demo-buttons">
+                            <button class="btn-animated btn-primary" onclick="showNotificationDemo('success')">Success Animation</button>
+                            <button class="btn-animated btn-error" onclick="showNotificationDemo('error')">Error Animation</button>
+                            <button class="btn-animated btn-info" onclick="showNotificationDemo('info')">Info Animation</button>
+                        </div>
+                    </section>
+
+                    <!-- Accessibility Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">♿ Accessibility Features</h2>
+                        <p>Enhanced accessibility with proper contrast ratios and focus indicators:</p>
+                        
+                        <div class="contrast-demo">
+                            <div class="contrast-item contrast-primary">Primary Text</div>
+                            <div class="contrast-item contrast-secondary">Secondary Text</div>
+                            <div class="contrast-item contrast-success">Success Color</div>
+                            <div class="contrast-item contrast-error">Error Color</div>
+                        </div>
+                        
+                        <div class="demo-buttons">
+                            <button class="btn-primary focus-enhanced" tabindex="0">Focus Test 1</button>
+                            <button class="btn-secondary focus-ring" tabindex="0">Focus Test 2</button>
+                            <button class="btn-info focus-enhanced" tabindex="0">Focus Test 3</button>
+                        </div>
+                        
+                        <p><small>Use Tab key to navigate and see enhanced focus indicators</small></p>
+                    </section>
+
+                    <!-- Device Optimization Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">📱 Device Optimization</h2>
+                        <p>Theme automatically optimizes for different devices and screen sizes:</p>
+                        
+                        <div class="demo-grid">
+                            <div class="demo-card">
+                                <h3>Mobile Optimization</h3>
+                                <p>Faster animations, larger touch targets, and optimized spacing for mobile devices.</p>
+                            </div>
+                            <div class="demo-card">
+                                <h3>High DPI Support</h3>
+                                <p>Crisp borders and shadows on high-resolution displays with automatic pixel ratio detection.</p>
+                            </div>
+                            <div class="demo-card">
+                                <h3>Performance</h3>
+                                <p>GPU acceleration and optimized animations for smooth performance across all devices.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Progress Indicators Demo -->
+                    <section class="test-section">
+                        <h2 class="test-title">📊 Progress Indicators</h2>
+                        <p>Enhanced progress bars and circular indicators:</p>
+                        
+                        <div style="margin: var(--spacing-md) 0;">
+                            <label>Progress Bar (75%):</label>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: var(--spacing-md) 0; display: flex; align-items: center; gap: var(--spacing-md);">
+                            <label>Circular Progress:</label>
+                            <div class="progress-circle" style="--progress-angle: 216deg;">
+                                <span class="progress-circle-text">60%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="demo-buttons">
+                            <button class="btn-primary" onclick="animateProgress()">Animate Progress</button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/themeOptimizer.js"></script>
+    
+    <script>
+        // Demo functions for testing theme optimization features
+        
+        function demoSpinnerLoading() {
+            if (window.themeOptimizer) {
+                window.themeOptimizer.showLoading('loadingDemo', 'spinner');
+            }
+        }
+        
+        function demoDotLoading() {
+            if (window.themeOptimizer) {
+                window.themeOptimizer.showLoading('loadingDemo', 'dots');
+            }
+        }
+        
+        function demoPulseLoading() {
+            if (window.themeOptimizer) {
+                window.themeOptimizer.showLoading('loadingDemo', 'pulse');
+            }
+        }
+        
+        function demoSkeletonLoading() {
+            const container = document.getElementById('loadingDemo');
+            container.innerHTML = '';
+            
+            if (window.themeOptimizer) {
+                window.themeOptimizer.createSkeleton(container, {
+                    lines: 3,
+                    avatar: true,
+                    button: true,
+                    card: false
+                });
+            }
+        }
+        
+        function clearLoadingDemo() {
+            if (window.themeOptimizer) {
+                window.themeOptimizer.hideLoading('loadingDemo');
+            }
+            
+            const container = document.getElementById('loadingDemo');
+            container.innerHTML = '<p>Click buttons above to see different loading states</p>';
+        }
+        
+        function triggerBounceAnimation(element) {
+            element.style.animation = 'btn-bounce 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 300);
+        }
+        
+        function showNotificationDemo(type) {
+            const messages = {
+                success: 'Theme optimization working perfectly!',
+                error: 'This is just a demo error message',
+                info: 'Theme customizer is ready to use'
+            };
+            
+            if (window.themeOptimizer) {
+                window.themeOptimizer.showNotification(messages[type], type);
+            }
+        }
+        
+        function animateProgress() {
+            const progressBar = document.querySelector('.progress-bar-fill');
+            const progressCircle = document.querySelector('.progress-circle');
+            const progressText = document.querySelector('.progress-circle-text');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 2;
+                
+                progressBar.style.width = progress + '%';
+                progressCircle.style.setProperty('--progress-angle', (progress * 3.6) + 'deg');
+                progressText.textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressBar.style.width = '75%';
+                        progressCircle.style.setProperty('--progress-angle', '216deg');
+                        progressText.textContent = '60%';
+                    }, 1000);
+                }
+            }, 50);
+        }
+        
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Theme optimization demo loaded');
+            
+            // Listen for theme changes
+            window.addEventListener('themeChanged', (e) => {
+                console.log('Theme changed:', e.detail);
+            });
+            
+            // Add some demo interactions
+            document.querySelectorAll('.demo-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    card.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        card.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

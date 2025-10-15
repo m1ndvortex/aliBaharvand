@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Layout Test - Service Provider Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <style>
+        /* Test-specific styles */
+        .test-section {
+            margin: var(--spacing-lg) 0;
+            padding: var(--spacing-lg);
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+        }
+        
+        .test-title {
+            color: var(--discord-blurple);
+            margin-bottom: var(--spacing-md);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        .device-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: var(--bg-tertiary);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            z-index: 1000;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .test-card {
+            background-color: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-primary);
+        }
+        
+        .test-table {
+            width: 100%;
+            margin-top: var(--spacing-md);
+        }
+        
+        .responsive-demo {
+            margin-top: var(--spacing-lg);
+        }
+        
+        @media (max-width: 767px) {
+            .mobile-demo {
+                background-color: rgba(87, 242, 135, 0.1);
+                border-left: 4px solid var(--success);
+            }
+        }
+        
+        @media (min-width: 768px) and (max-width: 991px) {
+            .tablet-demo {
+                background-color: rgba(255, 149, 0, 0.1);
+                border-left: 4px solid var(--discord-orange);
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .desktop-demo {
+                background-color: rgba(88, 101, 242, 0.1);
+                border-left: 4px solid var(--discord-blurple);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Device info display -->
+    <div class="device-info" id="deviceInfo">
+        <div>Screen: <span id="screenSize"></span></div>
+        <div>Device: <span id="deviceType"></span></div>
+        <div>Orientation: <span id="orientation"></span></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Header with role tabs and workspace switcher -->
+        <header class="dashboard-header" role="banner">
+            <div class="role-tabs" role="tablist" aria-label="User roles">
+                <button class="role-tab active" data-role="advertiser" role="tab" aria-selected="true" tabindex="0" aria-label="Advertiser Dashboard">
+                    <span class="tab-icon" aria-hidden="true">📊</span>
+                    <span class="tab-text">Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="team_advertiser" role="tab" aria-selected="false" tabindex="-1" aria-label="Team Advertiser Dashboard">
+                    <span class="tab-icon" aria-hidden="true">👥</span>
+                    <span class="tab-text">Team Advertiser</span>
+                </button>
+                <button class="role-tab" data-role="booster" role="tab" aria-selected="false" tabindex="-1" aria-label="Booster Dashboard">
+                    <span class="tab-icon" aria-hidden="true">🎮</span>
+                    <span class="tab-text">Booster</span>
+                </button>
+            </div>
+            <div class="workspace-switcher" role="group" aria-label="Workspace switcher">
+                <button class="workspace-btn active" data-workspace="personal" aria-pressed="true">
+                    Personal Workspace
+                </button>
+                <button class="workspace-btn" data-workspace="team" aria-pressed="false">
+                    Team Workspace
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile navigation toggle -->
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="nav-toggle-icon">☰</span>
+        </button>
+
+        <!-- Sidebar backdrop for mobile -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Main dashboard content -->
+        <div class="dashboard-content">
+            <aside class="sidebar" id="sidebar" role="complementary" aria-label="Navigation sidebar">
+                <nav class="sidebar-nav" role="menu" aria-label="Main navigation">
+                    <button class="sidebar-item active">
+                        <span class="item-icon">🏠</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Dashboard</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-item">
+                        <span class="item-icon">📝</span>
+                        <span class="item-label-container">
+                            <span class="item-label">My Services</span>
+                            <span class="item-badge">3</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-item">
+                        <span class="item-icon">📦</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Orders</span>
+                            <span class="item-badge">12</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-item">
+                        <span class="item-icon">💰</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Earnings</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-item">
+                        <span class="item-icon">💳</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Wallet</span>
+                        </span>
+                    </button>
+                    <div class="sidebar-separator"></div>
+                    <button class="sidebar-item">
+                        <span class="item-icon">👥</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Team Management</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-item">
+                        <span class="item-icon">📊</span>
+                        <span class="item-label-container">
+                            <span class="item-label">Analytics</span>
+                        </span>
+                    </button>
+                </nav>
+            </aside>
+            
+            <main class="main-content" role="main" aria-live="polite">
+                <div class="content-area">
+                    <h1>Responsive Layout Test</h1>
+                    <p>This page tests the responsive layout system for the Service Provider Dashboard.</p>
+                    
+                    <!-- Device-specific demos -->
+                    <div class="responsive-demo">
+                        <div class="test-section mobile-demo">
+                            <h2 class="test-title">📱 Mobile Layout (≤767px)</h2>
+                            <p>On mobile devices, you should see:</p>
+                            <ul>
+                                <li>Collapsible sidebar with hamburger menu</li>
+                                <li>Stacked header with role tabs and workspace switcher</li>
+                                <li>Touch-friendly buttons (44px minimum)</li>
+                                <li>Full-width modals with bottom sheet style</li>
+                                <li>Horizontal scrolling tables</li>
+                                <li>Single column grid layouts</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="test-section tablet-demo">
+                            <h2 class="test-title">📱 Tablet Layout (768px-991px)</h2>
+                            <p>On tablet devices, you should see:</p>
+                            <ul>
+                                <li>Narrower sidebar (200px)</li>
+                                <li>Horizontal header layout</li>
+                                <li>2-column grid layouts</li>
+                                <li>Medium-sized modals</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="test-section desktop-demo">
+                            <h2 class="test-title">🖥️ Desktop Layout (≥992px)</h2>
+                            <p>On desktop devices, you should see:</p>
+                            <ul>
+                                <li>Full sidebar (240px)</li>
+                                <li>Horizontal header layout</li>
+                                <li>Multi-column grid layouts</li>
+                                <li>Large modals</li>
+                                <li>No mobile navigation toggle</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Test components -->
+                    <div class="test-section">
+                        <h2 class="test-title">🧪 Component Tests</h2>
+                        
+                        <!-- Grid test -->
+                        <h3>Grid Layout Test</h3>
+                        <div class="test-grid">
+                            <div class="test-card">Card 1</div>
+                            <div class="test-card">Card 2</div>
+                            <div class="test-card">Card 3</div>
+                            <div class="test-card">Card 4</div>
+                            <div class="test-card">Card 5</div>
+                            <div class="test-card">Card 6</div>
+                        </div>
+                        
+                        <!-- Button test -->
+                        <h3>Touch-Friendly Buttons</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-md);">
+                            <button class="btn-primary">Primary Button</button>
+                            <button class="btn-secondary">Secondary Button</button>
+                            <button class="btn-success">Success Button</button>
+                            <button class="btn-warning">Warning Button</button>
+                            <button class="btn-error">Error Button</button>
+                        </div>
+                        
+                        <!-- Form test -->
+                        <h3>Mobile-Optimized Form</h3>
+                        <div style="max-width: 400px; margin-top: var(--spacing-md);">
+                            <div class="form-group">
+                                <label class="form-label">Service Title</label>
+                                <input type="text" class="form-input" placeholder="Enter service title">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-input" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Service Type</label>
+                                <select class="form-input">
+                                    <option>Mythic+</option>
+                                    <option>Leveling</option>
+                                    <option>Delves</option>
+                                    <option>Custom</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary" style="width: 100%;">Create Service</button>
+                        </div>
+                        
+                        <!-- Table test -->
+                        <h3>Responsive Table</h3>
+                        <div class="table-container">
+                            <table class="table test-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>#12345</td>
+                                        <td>Mythic+20 Boost</td>
+                                        <td><span class="status-badge active">Active</span></td>
+                                        <td>500G</td>
+                                        <td>
+                                            <button class="btn-sm btn-primary">View</button>
+                                            <button class="btn-sm btn-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#12346</td>
+                                        <td>Level 80 Boost</td>
+                                        <td><span class="status-badge pending">Pending</span></td>
+                                        <td>$25.00</td>
+                                        <td>
+                                            <button class="btn-sm btn-primary">View</button>
+                                            <button class="btn-sm btn-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#12347</td>
+                                        <td>Delve Completion</td>
+                                        <td><span class="status-badge completed">Completed</span></td>
+                                        <td>300G</td>
+                                        <td>
+                                            <button class="btn-sm btn-primary">View</button>
+                                            <button class="btn-sm btn-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal test -->
+                    <div class="test-section">
+                        <h2 class="test-title">📱 Modal Test</h2>
+                        <button class="btn-primary" onclick="openTestModal()">Open Test Modal</button>
+                    </div>
+                    
+                    <!-- Notification test -->
+                    <div class="test-section">
+                        <h2 class="test-title">🔔 Notification Test</h2>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm);">
+                            <button class="btn-success" onclick="showTestNotification('success')">Success</button>
+                            <button class="btn-error" onclick="showTestNotification('error')">Error</button>
+                            <button class="btn-warning" onclick="showTestNotification('warning')">Warning</button>
+                            <button class="btn-info" onclick="showTestNotification('info')">Info</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Gesture test -->
+                    <div class="test-section">
+                        <h2 class="test-title">👆 Gesture Test</h2>
+                        <p>On mobile devices, try these gestures:</p>
+                        <ul>
+                            <li><strong>Swipe right from left edge:</strong> Open sidebar</li>
+                            <li><strong>Swipe left when sidebar is open:</strong> Close sidebar</li>
+                            <li><strong>Pull down from top:</strong> Refresh content</li>
+                            <li><strong>Tap outside sidebar:</strong> Close sidebar</li>
+                        </ul>
+                        <div id="gestureLog" style="margin-top: var(--spacing-md); padding: var(--spacing-md); background-color: var(--bg-tertiary); border-radius: var(--radius-sm); font-family: monospace; font-size: var(--font-size-xs); max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Test Modal -->
+    <div class="modal-overlay" id="testModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Test Modal</h3>
+                <button class="modal-close" onclick="closeTestModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>This is a test modal to demonstrate responsive modal behavior.</p>
+                <p>On mobile devices, this modal should:</p>
+                <ul>
+                    <li>Slide up from the bottom</li>
+                    <li>Take full width</li>
+                    <li>Have rounded top corners</li>
+                    <li>Support swipe-to-close</li>
+                </ul>
+                <div class="form-group">
+                    <label class="form-label">Test Input</label>
+                    <input type="text" class="form-input" placeholder="Test input field">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Test Textarea</label>
+                    <textarea class="form-input" rows="3" placeholder="Test textarea"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTestModal()">Cancel</button>
+                <button class="btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/responsiveManager.js"></script>
+    <script>
+        // Test-specific JavaScript
+        let gestureLogCount = 0;
+        
+        function updateDeviceInfo() {
+            const screenSize = `${window.innerWidth}x${window.innerHeight}`;
+            const deviceType = window.innerWidth <= 767 ? 'Mobile' : 
+                              window.innerWidth <= 991 ? 'Tablet' : 'Desktop';
+            const orientation = window.innerWidth > window.innerHeight ? 'Landscape' : 'Portrait';
+            
+            document.getElementById('screenSize').textContent = screenSize;
+            document.getElementById('deviceType').textContent = deviceType;
+            document.getElementById('orientation').textContent = orientation;
+        }
+        
+        function logGesture(message) {
+            const log = document.getElementById('gestureLog');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+            gestureLogCount++;
+            
+            if (gestureLogCount > 50) {
+                const lines = log.innerHTML.split('\n');
+                log.innerHTML = lines.slice(-25).join('\n');
+                gestureLogCount = 25;
+            }
+        }
+        
+        function openTestModal() {
+            const modal = document.getElementById('testModal');
+            modal.classList.add('active');
+            
+            // Optimize for mobile if responsive manager is available
+            if (window.responsiveManager) {
+                window.responsiveManager.optimizeModalForMobile(modal);
+            }
+            
+            logGesture('Test modal opened');
+        }
+        
+        function closeTestModal() {
+            const modal = document.getElementById('testModal');
+            modal.classList.remove('active');
+            logGesture('Test modal closed');
+        }
+        
+        function showTestNotification(type) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type} show`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            notification.innerHTML = `
+                <span class="notification-icon">${icons[type]}</span>
+                <div class="notification-content">
+                    <div class="notification-title">${type.charAt(0).toUpperCase() + type.slice(1)} Notification</div>
+                    <p class="notification-message">This is a test ${type} notification for responsive testing.</p>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+            
+            logGesture(`${type} notification shown`);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDeviceInfo();
+            logGesture('Responsive layout test initialized');
+            
+            // Listen for responsive events
+            document.addEventListener('responsiveResize', (e) => {
+                updateDeviceInfo();
+                logGesture(`Device type changed: ${e.detail.isMobile ? 'Mobile' : e.detail.isTablet ? 'Tablet' : 'Desktop'}`);
+            });
+            
+            document.addEventListener('pullToRefresh', () => {
+                logGesture('Pull-to-refresh triggered');
+                showTestNotification('info');
+            });
+            
+            // Log sidebar events
+            const sidebar = document.getElementById('sidebar');
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isOpen = sidebar.classList.contains('mobile-open');
+                        logGesture(`Sidebar ${isOpen ? 'opened' : 'closed'}`);
+                    }
+                });
+            });
+            observer.observe(sidebar, { attributes: true });
+        });
+        
+        // Update device info on resize
+        window.addEventListener('resize', updateDeviceInfo);
+        
+        // Close modal when clicking outside
+        document.getElementById('testModal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeTestModal();
+            }
+        });
+        
+        // Test keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('testModal');
+                if (modal.classList.contains('active')) {
+                    closeTestModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

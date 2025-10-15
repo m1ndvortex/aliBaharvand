@@ -310,3 +310,6 @@ input::placeholder, textarea::placeholder {
     background-color: rgba(88, 101, 242, 0.3);
     color: var(--text-primary);
 }
+
+/* Import Theme Optimization Styles */
+@import url('theme-optimization.css');

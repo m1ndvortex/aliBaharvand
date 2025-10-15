@@ -82,12 +82,46 @@ class DashboardApp {
     }
 
     /**
+     * Wait for theme optimizer to be available
+     */
+    async waitForThemeOptimizer() {
+        return new Promise((resolve) => {
+            if (window.themeOptimizer) {
+                resolve();
+                return;
+            }
+            
+            const checkInterval = setInterval(() => {
+                if (window.themeOptimizer) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.warn('Theme optimizer not available, continuing without it');
+                resolve();
+            }, 5000);
+        });
+    }
+
+    /**
      * Initialize the application
      */
     async init() {
         if (this.initialized) return;
 
         try {
+            // Initialize theme optimizer first
+            if (window.themeOptimizer) {
+                console.log('Theme optimizer already initialized');
+            } else {
+                // Wait for theme optimizer to be available
+                await this.waitForThemeOptimizer();
+            }
+            
             // Set up event listeners
             this.setupEventListeners();
             
