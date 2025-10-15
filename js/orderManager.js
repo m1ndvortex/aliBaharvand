@@ -895,7 +895,7 @@ class OrderManager {
     }
 
     /**
-     * Create order timeline
+     * Create order timeline with enhanced visual progress representation
      */
     createOrderTimeline(order) {
         const section = Utils.DOM.create('div', {
@@ -905,32 +905,62 @@ class OrderManager {
         const title = Utils.DOM.create('h3', {}, 'Order Timeline');
         section.appendChild(title);
 
+        // Create progress indicator
+        const progressIndicator = this.createOrderProgressIndicator(order);
+        section.appendChild(progressIndicator);
+
         const timeline = Utils.DOM.create('div', {
             className: 'order-timeline'
         });
 
         if (order.timeline && order.timeline.length > 0) {
-            order.timeline.forEach(event => {
+            order.timeline.forEach((event, index) => {
                 const timelineItem = Utils.DOM.create('div', {
-                    className: 'timeline-item'
+                    className: `timeline-item ${this.getTimelineItemClass(event.status)}`
                 });
+
+                const timelineIcon = Utils.DOM.create('div', {
+                    className: 'timeline-icon'
+                });
+                timelineIcon.innerHTML = this.getStatusIcon(event.status);
+
+                const timelineContent = Utils.DOM.create('div', {
+                    className: 'timeline-content'
+                });
+
+                const timelineHeader = Utils.DOM.create('div', {
+                    className: 'timeline-header'
+                });
+
+                const status = Utils.DOM.create('div', {
+                    className: 'timeline-status'
+                }, this.getStatusDisplayName(event.status));
 
                 const timestamp = Utils.DOM.create('div', {
                     className: 'timeline-timestamp'
                 }, Utils.Format.date(event.timestamp, 'datetime'));
 
-                const status = Utils.DOM.create('div', {
-                    className: 'timeline-status'
-                }, event.status);
+                timelineHeader.appendChild(status);
+                timelineHeader.appendChild(timestamp);
 
                 const note = Utils.DOM.create('div', {
                     className: 'timeline-note'
                 }, event.note);
 
-                timelineItem.appendChild(timestamp);
-                timelineItem.appendChild(status);
-                timelineItem.appendChild(note);
+                timelineContent.appendChild(timelineHeader);
+                timelineContent.appendChild(note);
+
+                timelineItem.appendChild(timelineIcon);
+                timelineItem.appendChild(timelineContent);
                 timeline.appendChild(timelineItem);
+
+                // Add connector line (except for last item)
+                if (index < order.timeline.length - 1) {
+                    const connector = Utils.DOM.create('div', {
+                        className: 'timeline-connector'
+                    });
+                    timeline.appendChild(connector);
+                }
             });
         } else {
             const noTimeline = Utils.DOM.create('p', {
@@ -941,6 +971,141 @@ class OrderManager {
 
         section.appendChild(timeline);
         return section;
+    }
+
+    /**
+     * Create visual progress indicator for order status
+     */
+    createOrderProgressIndicator(order) {
+        const progressContainer = Utils.DOM.create('div', {
+            className: 'order-progress-indicator'
+        });
+
+        const statusFlow = [
+            { key: 'pending', label: 'Pending', icon: '⏳' },
+            { key: 'assigned', label: 'Assigned', icon: '👤' },
+            { key: 'in_progress', label: 'In Progress', icon: '🎮' },
+            { key: 'evidence_submitted', label: 'Evidence Submitted', icon: '📸' },
+            { key: 'under_review', label: 'Under Review', icon: '🔍' },
+            { key: 'completed', label: 'Completed', icon: '✅' }
+        ];
+
+        const currentStatusIndex = statusFlow.findIndex(s => s.key === order.status);
+        const isRejected = order.status === 'rejected';
+
+        statusFlow.forEach((status, index) => {
+            const stepElement = Utils.DOM.create('div', {
+                className: `progress-step ${this.getProgressStepClass(status.key, order.status, index, currentStatusIndex, isRejected)}`
+            });
+
+            const stepIcon = Utils.DOM.create('div', {
+                className: 'step-icon'
+            }, status.icon);
+
+            const stepLabel = Utils.DOM.create('div', {
+                className: 'step-label'
+            }, status.label);
+
+            stepElement.appendChild(stepIcon);
+            stepElement.appendChild(stepLabel);
+            progressContainer.appendChild(stepElement);
+
+            // Add connector (except for last item)
+            if (index < statusFlow.length - 1) {
+                const connector = Utils.DOM.create('div', {
+                    className: `progress-connector ${index < currentStatusIndex ? 'completed' : ''}`
+                });
+                progressContainer.appendChild(connector);
+            }
+        });
+
+        // Add rejected status if applicable
+        if (isRejected) {
+            const rejectedStep = Utils.DOM.create('div', {
+                className: 'progress-step rejected active'
+            });
+
+            const rejectedIcon = Utils.DOM.create('div', {
+                className: 'step-icon'
+            }, '❌');
+
+            const rejectedLabel = Utils.DOM.create('div', {
+                className: 'step-label'
+            }, 'Rejected');
+
+            rejectedStep.appendChild(rejectedIcon);
+            rejectedStep.appendChild(rejectedLabel);
+            progressContainer.appendChild(rejectedStep);
+        }
+
+        return progressContainer;
+    }
+
+    /**
+     * Get CSS class for progress step based on current order status
+     */
+    getProgressStepClass(stepStatus, currentStatus, stepIndex, currentIndex, isRejected) {
+        if (isRejected && stepStatus !== 'pending') {
+            return stepIndex <= currentIndex ? 'completed rejected-flow' : 'inactive';
+        }
+
+        if (stepStatus === currentStatus) {
+            return 'active';
+        }
+
+        if (stepIndex < currentIndex) {
+            return 'completed';
+        }
+
+        return 'inactive';
+    }
+
+    /**
+     * Get timeline item CSS class based on status
+     */
+    getTimelineItemClass(status) {
+        const statusClasses = {
+            'pending': 'timeline-pending',
+            'assigned': 'timeline-assigned',
+            'in_progress': 'timeline-in-progress',
+            'evidence_submitted': 'timeline-evidence',
+            'under_review': 'timeline-review',
+            'completed': 'timeline-completed',
+            'rejected': 'timeline-rejected'
+        };
+        return statusClasses[status] || 'timeline-default';
+    }
+
+    /**
+     * Get icon for order status
+     */
+    getStatusIcon(status) {
+        const statusIcons = {
+            'pending': '⏳',
+            'assigned': '👤',
+            'in_progress': '🎮',
+            'evidence_submitted': '📸',
+            'under_review': '🔍',
+            'completed': '✅',
+            'rejected': '❌'
+        };
+        return statusIcons[status] || '📋';
+    }
+
+    /**
+     * Get display name for status
+     */
+    getStatusDisplayName(status) {
+        const statusNames = {
+            'pending': 'Pending Assignment',
+            'assigned': 'Assigned to Booster',
+            'in_progress': 'Service In Progress',
+            'evidence_submitted': 'Evidence Submitted',
+            'under_review': 'Under Review',
+            'completed': 'Completed Successfully',
+            'rejected': 'Rejected'
+        };
+        return statusNames[status] || status;
     }
 
     /**
@@ -1142,33 +1307,33 @@ class OrderManager {
         const order = this.orders.get(orderId);
         
         if (order) {
-            // Update order
-            order.boosterId = boosterId;
-            order.status = 'assigned';
-            order.assignedAt = new Date().toISOString();
-            
-            // Add timeline entry
-            if (!order.timeline) order.timeline = [];
-            order.timeline.push({
-                status: 'assigned',
-                timestamp: new Date().toISOString(),
-                note: `Assigned to ${MockData.users.find(u => u.id === boosterId)?.discordUsername}`
-            });
+            try {
+                // Set booster before status change
+                order.boosterId = boosterId;
+                
+                // Use comprehensive status management
+                const boosterName = MockData.users.find(u => u.id === boosterId)?.discordUsername || 'Unknown Booster';
+                this.changeOrderStatus(orderId, 'assigned', `Assigned to ${boosterName}`, 'current_user');
 
-            // Update orders map
-            this.orders.set(orderId, order);
+                // Close modal and refresh view
+                Components.closeModal();
+                this.applyFilters();
+                this.renderOrders();
 
-            // Close modal and refresh view
-            Components.closeModal();
-            this.applyFilters();
-            this.renderOrders();
-
-            Components.showNotification({
-                type: 'success',
-                title: 'Booster Assigned',
-                message: `Order ${orderId} has been assigned successfully.`,
-                duration: 3000
-            });
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Booster Assigned',
+                    message: `Order ${orderId} has been assigned successfully to ${boosterName}.`,
+                    duration: 3000
+                });
+            } catch (error) {
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Assignment Failed',
+                    message: error.message,
+                    duration: 4000
+                });
+            }
         }
     }
 
@@ -1347,33 +1512,32 @@ class OrderManager {
         const order = this.orders.get(orderId);
         
         if (order) {
-            // Update order status
-            order.status = 'completed';
-            order.completedAt = new Date().toISOString();
-            order.reviewNotes = 'Order approved and completed successfully.';
+            try {
+                // Set review notes
+                order.reviewNotes = 'Order approved and completed successfully.';
+                
+                // Use comprehensive status management
+                this.changeOrderStatus(orderId, 'completed', 'Order approved and payment released', 'current_user');
 
-            // Add timeline entry
-            if (!order.timeline) order.timeline = [];
-            order.timeline.push({
-                status: 'completed',
-                timestamp: new Date().toISOString(),
-                note: 'Order approved and payment released'
-            });
+                // Close modal and refresh view
+                Components.closeModal();
+                this.applyFilters();
+                this.renderOrders();
 
-            // Update orders map
-            this.orders.set(orderId, order);
-
-            // Close modal and refresh view
-            Components.closeModal();
-            this.applyFilters();
-            this.renderOrders();
-
-            Components.showNotification({
-                type: 'success',
-                title: 'Order Approved',
-                message: `Order ${orderId} has been approved and completed.`,
-                duration: 3000
-            });
+                Components.showNotification({
+                    type: 'success',
+                    title: 'Order Approved',
+                    message: `Order ${orderId} has been approved and completed.`,
+                    duration: 3000
+                });
+            } catch (error) {
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Approval Failed',
+                    message: error.message,
+                    duration: 4000
+                });
+            }
         }
     }
 
@@ -1394,32 +1558,32 @@ class OrderManager {
         const order = this.orders.get(orderId);
         
         if (order) {
-            // Update order status
-            order.status = 'rejected';
-            order.reviewNotes = reason;
+            try {
+                // Set review notes
+                order.reviewNotes = reason;
+                
+                // Use comprehensive status management
+                this.changeOrderStatus(orderId, 'rejected', `Order rejected: ${reason}`, 'current_user');
 
-            // Add timeline entry
-            if (!order.timeline) order.timeline = [];
-            order.timeline.push({
-                status: 'rejected',
-                timestamp: new Date().toISOString(),
-                note: `Order rejected: ${reason}`
-            });
+                // Close modal and refresh view
+                Components.closeModal();
+                this.applyFilters();
+                this.renderOrders();
 
-            // Update orders map
-            this.orders.set(orderId, order);
-
-            // Close modal and refresh view
-            Components.closeModal();
-            this.applyFilters();
-            this.renderOrders();
-
-            Components.showNotification({
-                type: 'warning',
-                title: 'Order Rejected',
-                message: `Order ${orderId} has been rejected.`,
-                duration: 3000
-            });
+                Components.showNotification({
+                    type: 'warning',
+                    title: 'Order Rejected',
+                    message: `Order ${orderId} has been rejected.`,
+                    duration: 3000
+                });
+            } catch (error) {
+                Components.showNotification({
+                    type: 'error',
+                    title: 'Rejection Failed',
+                    message: error.message,
+                    duration: 4000
+                });
+            }
         }
     }
 
@@ -1486,24 +1650,24 @@ class OrderManager {
         }
 
         const boosterId = selectedBooster.value;
+        const boosterName = MockData.users.find(u => u.id === boosterId)?.discordUsername || 'Unknown Booster';
         let assignedCount = 0;
+        let failedCount = 0;
 
         orderIds.forEach(orderId => {
             const order = this.orders.get(orderId);
             if (order && order.status === 'pending') {
-                order.boosterId = boosterId;
-                order.status = 'assigned';
-                order.assignedAt = new Date().toISOString();
-                
-                if (!order.timeline) order.timeline = [];
-                order.timeline.push({
-                    status: 'assigned',
-                    timestamp: new Date().toISOString(),
-                    note: `Bulk assigned to ${MockData.users.find(u => u.id === boosterId)?.discordUsername}`
-                });
-
-                this.orders.set(orderId, order);
-                assignedCount++;
+                try {
+                    // Set booster before status change
+                    order.boosterId = boosterId;
+                    
+                    // Use comprehensive status management
+                    this.changeOrderStatus(orderId, 'assigned', `Bulk assigned to ${boosterName}`, 'current_user');
+                    assignedCount++;
+                } catch (error) {
+                    console.error(`Failed to assign order ${orderId}:`, error);
+                    failedCount++;
+                }
             }
         });
 
@@ -1513,10 +1677,14 @@ class OrderManager {
         this.applyFilters();
         this.renderOrders();
 
+        const message = failedCount > 0 
+            ? `${assignedCount} orders assigned successfully, ${failedCount} failed.`
+            : `${assignedCount} orders have been assigned successfully.`;
+
         Components.showNotification({
-            type: 'success',
+            type: failedCount > 0 ? 'warning' : 'success',
             title: 'Bulk Assignment Complete',
-            message: `${assignedCount} orders have been assigned successfully.`,
+            message: message,
             duration: 3000
         });
     }
@@ -1623,6 +1791,657 @@ class OrderManager {
             message: `${deletedCount} orders have been deleted.`,
             duration: 3000
         });
+    }
+
+    /**
+     * Complete order status management system
+     */
+
+    /**
+     * Change order status with validation and timeline tracking
+     */
+    changeOrderStatus(orderId, newStatus, note = '', userId = 'current_user') {
+        const order = this.orders.get(orderId);
+        if (!order) {
+            throw new Error(`Order ${orderId} not found`);
+        }
+
+        // Validate status transition
+        if (!this.isValidStatusTransition(order.status, newStatus)) {
+            throw new Error(`Invalid status transition from ${order.status} to ${newStatus}`);
+        }
+
+        // Apply business rule validation
+        const validationResult = this.validateStatusChange(order, newStatus);
+        if (!validationResult.isValid) {
+            throw new Error(validationResult.message);
+        }
+
+        const previousStatus = order.status;
+        
+        // Update order status
+        order.status = newStatus;
+        
+        // Update relevant timestamps
+        this.updateOrderTimestamps(order, newStatus);
+        
+        // Add timeline entry
+        this.addTimelineEntry(order, newStatus, note, userId);
+        
+        // Trigger status-specific actions
+        this.handleStatusChangeActions(order, previousStatus, newStatus);
+        
+        // Update orders map
+        this.orders.set(orderId, order);
+        
+        // Dispatch status change event
+        this.dispatchStatusChangeEvent(order, previousStatus, newStatus);
+        
+        return order;
+    }
+
+    /**
+     * Validate if status transition is allowed
+     */
+    isValidStatusTransition(currentStatus, newStatus) {
+        const validTransitions = {
+            'pending': ['assigned', 'rejected'],
+            'assigned': ['in_progress', 'pending', 'rejected'],
+            'in_progress': ['evidence_submitted', 'assigned', 'rejected'],
+            'evidence_submitted': ['under_review', 'in_progress', 'rejected'],
+            'under_review': ['completed', 'rejected', 'evidence_submitted'],
+            'completed': [], // Final state
+            'rejected': ['pending', 'assigned'] // Can be restarted
+        };
+
+        return validTransitions[currentStatus]?.includes(newStatus) || false;
+    }
+
+    /**
+     * Validate status change based on business rules
+     */
+    validateStatusChange(order, newStatus) {
+        switch (newStatus) {
+            case 'assigned':
+                if (!order.boosterId) {
+                    return { isValid: false, message: 'Cannot assign order without selecting a booster' };
+                }
+                break;
+                
+            case 'in_progress':
+                if (!order.boosterId) {
+                    return { isValid: false, message: 'Cannot start order without assigned booster' };
+                }
+                break;
+                
+            case 'evidence_submitted':
+                if (!order.evidence || !order.evidence.imageUrl) {
+                    return { isValid: false, message: 'Cannot submit evidence without uploading proof' };
+                }
+                break;
+                
+            case 'completed':
+                if (order.status !== 'under_review') {
+                    return { isValid: false, message: 'Order must be under review before completion' };
+                }
+                break;
+        }
+        
+        return { isValid: true };
+    }
+
+    /**
+     * Update order timestamps based on status
+     */
+    updateOrderTimestamps(order, status) {
+        const now = new Date().toISOString();
+        
+        switch (status) {
+            case 'assigned':
+                order.assignedAt = now;
+                break;
+            case 'in_progress':
+                order.startedAt = now;
+                break;
+            case 'evidence_submitted':
+                if (order.evidence) {
+                    order.evidence.uploadedAt = now;
+                }
+                break;
+            case 'completed':
+                order.completedAt = now;
+                break;
+        }
+    }
+
+    /**
+     * Add timeline entry for status change
+     */
+    addTimelineEntry(order, status, note, userId) {
+        if (!order.timeline) {
+            order.timeline = [];
+        }
+        
+        const timelineEntry = {
+            status: status,
+            timestamp: new Date().toISOString(),
+            note: note || this.getDefaultStatusNote(status),
+            userId: userId,
+            userInfo: this.getUserInfo(userId)
+        };
+        
+        order.timeline.push(timelineEntry);
+    }
+
+    /**
+     * Get default note for status change
+     */
+    getDefaultStatusNote(status) {
+        const defaultNotes = {
+            'pending': 'Order created and awaiting assignment',
+            'assigned': 'Order assigned to booster',
+            'in_progress': 'Service started by booster',
+            'evidence_submitted': 'Evidence uploaded by booster',
+            'under_review': 'Evidence under review by advertiser',
+            'completed': 'Order completed successfully',
+            'rejected': 'Order rejected'
+        };
+        
+        return defaultNotes[status] || `Status changed to ${status}`;
+    }
+
+    /**
+     * Get user info for timeline entry
+     */
+    getUserInfo(userId) {
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const user = MockData.users.find(u => u.id === userId);
+            if (user) {
+                return {
+                    username: user.discordUsername,
+                    avatar: user.discordAvatarUrl
+                };
+            }
+        }
+        return { username: 'System', avatar: null };
+    }
+
+    /**
+     * Handle status-specific actions
+     */
+    handleStatusChangeActions(order, previousStatus, newStatus) {
+        switch (newStatus) {
+            case 'assigned':
+                this.handleOrderAssignment(order);
+                break;
+            case 'in_progress':
+                this.handleOrderStart(order);
+                break;
+            case 'evidence_submitted':
+                this.handleEvidenceSubmission(order);
+                break;
+            case 'completed':
+                this.handleOrderCompletion(order);
+                break;
+            case 'rejected':
+                this.handleOrderRejection(order, previousStatus);
+                break;
+        }
+    }
+
+    /**
+     * Handle order assignment actions
+     */
+    handleOrderAssignment(order) {
+        // Send notification to booster
+        this.sendNotification({
+            type: 'order_assigned',
+            recipientId: order.boosterId,
+            orderId: order.id,
+            message: `You have been assigned to order ${order.id}`
+        });
+        
+        // Update booster's active orders count
+        this.updateBoosterStats(order.boosterId, 'assigned');
+    }
+
+    /**
+     * Handle order start actions
+     */
+    handleOrderStart(order) {
+        // Send notification to advertiser
+        this.sendNotification({
+            type: 'order_started',
+            recipientId: order.advertiserId,
+            orderId: order.id,
+            message: `Order ${order.id} has been started by the booster`
+        });
+    }
+
+    /**
+     * Handle evidence submission actions
+     */
+    handleEvidenceSubmission(order) {
+        // Automatically move to under_review
+        order.status = 'under_review';
+        this.addTimelineEntry(order, 'under_review', 'Evidence automatically moved to review queue');
+        
+        // Send notification to advertiser
+        this.sendNotification({
+            type: 'evidence_submitted',
+            recipientId: order.advertiserId,
+            orderId: order.id,
+            message: `Evidence has been submitted for order ${order.id} and is awaiting your review`
+        });
+    }
+
+    /**
+     * Handle order completion actions
+     */
+    handleOrderCompletion(order) {
+        // Process payment to booster
+        this.processOrderPayment(order);
+        
+        // Update statistics
+        this.updateBoosterStats(order.boosterId, 'completed');
+        this.updateAdvertiserStats(order.advertiserId, 'completed');
+        
+        // Send notifications
+        this.sendNotification({
+            type: 'order_completed',
+            recipientId: order.boosterId,
+            orderId: order.id,
+            message: `Order ${order.id} has been completed and payment has been processed`
+        });
+    }
+
+    /**
+     * Handle order rejection actions
+     */
+    handleOrderRejection(order, previousStatus) {
+        // If rejecting from evidence review, allow resubmission
+        if (previousStatus === 'under_review') {
+            // Send notification to booster for resubmission
+            this.sendNotification({
+                type: 'evidence_rejected',
+                recipientId: order.boosterId,
+                orderId: order.id,
+                message: `Evidence for order ${order.id} has been rejected. Please resubmit.`
+            });
+        } else {
+            // Full order rejection - process refund
+            this.processOrderRefund(order);
+        }
+    }
+
+    /**
+     * Process payment for completed order
+     */
+    processOrderPayment(order) {
+        // This would integrate with the wallet system
+        console.log(`Processing payment of ${order.pricePaid} ${order.currencyUsed} to booster ${order.boosterId} for order ${order.id}`);
+        
+        // Add payment timeline entry
+        this.addTimelineEntry(order, 'payment_processed', `Payment of ${order.pricePaid} ${order.currencyUsed} processed to booster wallet`);
+    }
+
+    /**
+     * Process refund for rejected order
+     */
+    processOrderRefund(order) {
+        // This would integrate with the wallet system
+        console.log(`Processing refund of ${order.pricePaid} ${order.currencyUsed} to buyer ${order.buyerId} for order ${order.id}`);
+        
+        // Add refund timeline entry
+        this.addTimelineEntry(order, 'refund_processed', `Refund of ${order.pricePaid} ${order.currencyUsed} processed to buyer`);
+    }
+
+    /**
+     * Update booster statistics
+     */
+    updateBoosterStats(boosterId, action) {
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const booster = MockData.users.find(u => u.id === boosterId);
+            if (booster && booster.stats) {
+                switch (action) {
+                    case 'assigned':
+                        booster.stats.activeOrders = (booster.stats.activeOrders || 0) + 1;
+                        break;
+                    case 'completed':
+                        booster.stats.completedOrders = (booster.stats.completedOrders || 0) + 1;
+                        booster.stats.activeOrders = Math.max((booster.stats.activeOrders || 0) - 1, 0);
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Update advertiser statistics
+     */
+    updateAdvertiserStats(advertiserId, action) {
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const advertiser = MockData.users.find(u => u.id === advertiserId);
+            if (advertiser && advertiser.stats) {
+                switch (action) {
+                    case 'completed':
+                        advertiser.stats.completedSales = (advertiser.stats.completedSales || 0) + 1;
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Send notification (placeholder for notification system integration)
+     */
+    sendNotification(notification) {
+        // This would integrate with the notification system
+        console.log('Notification sent:', notification);
+        
+        // For now, show browser notification if supported
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`Order ${notification.orderId}`, {
+                body: notification.message,
+                icon: '/favicon.ico'
+            });
+        }
+    }
+
+    /**
+     * Dispatch status change event for other systems to listen to
+     */
+    dispatchStatusChangeEvent(order, previousStatus, newStatus) {
+        const event = new CustomEvent('orderStatusChanged', {
+            detail: {
+                orderId: order.id,
+                previousStatus: previousStatus,
+                newStatus: newStatus,
+                order: order
+            }
+        });
+        
+        document.dispatchEvent(event);
+    }
+
+    /**
+     * Get orders by status with optional filtering
+     */
+    getOrdersByStatus(status, additionalFilters = {}) {
+        let orders = Array.from(this.orders.values()).filter(order => order.status === status);
+        
+        // Apply additional filters
+        if (additionalFilters.advertiserId) {
+            orders = orders.filter(order => order.advertiserId === additionalFilters.advertiserId);
+        }
+        
+        if (additionalFilters.boosterId) {
+            orders = orders.filter(order => order.boosterId === additionalFilters.boosterId);
+        }
+        
+        if (additionalFilters.serviceType) {
+            orders = orders.filter(order => {
+                const service = this.getServiceById(order.serviceId);
+                return service && service.serviceType === additionalFilters.serviceType;
+            });
+        }
+        
+        return orders;
+    }
+
+    /**
+     * Get service by ID
+     */
+    getServiceById(serviceId) {
+        if (typeof MockData !== 'undefined' && MockData.services) {
+            return MockData.services.find(s => s.id === serviceId);
+        }
+        return null;
+    }
+
+    /**
+     * Get order status statistics
+     */
+    getOrderStatusStatistics() {
+        const stats = {
+            total: this.orders.size,
+            byStatus: {},
+            byTimeRange: {
+                today: 0,
+                thisWeek: 0,
+                thisMonth: 0
+            }
+        };
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        this.orders.forEach(order => {
+            // Count by status
+            stats.byStatus[order.status] = (stats.byStatus[order.status] || 0) + 1;
+            
+            // Count by time range
+            const orderDate = new Date(order.createdAt);
+            if (orderDate >= today) stats.byTimeRange.today++;
+            if (orderDate >= thisWeek) stats.byTimeRange.thisWeek++;
+            if (orderDate >= thisMonth) stats.byTimeRange.thisMonth++;
+        });
+        
+        return stats;
+    }
+
+    /**
+     * Validate order workflow integrity
+     */
+    validateOrderWorkflow(orderId) {
+        const order = this.orders.get(orderId);
+        if (!order) {
+            return { isValid: false, errors: ['Order not found'] };
+        }
+        
+        const errors = [];
+        
+        // Check required fields based on status
+        switch (order.status) {
+            case 'assigned':
+                if (!order.boosterId) errors.push('Assigned order must have a booster');
+                if (!order.assignedAt) errors.push('Assigned order must have assignment timestamp');
+                break;
+                
+            case 'in_progress':
+                if (!order.boosterId) errors.push('In-progress order must have a booster');
+                if (!order.startedAt) errors.push('In-progress order must have start timestamp');
+                break;
+                
+            case 'evidence_submitted':
+            case 'under_review':
+                if (!order.evidence) errors.push('Order with evidence status must have evidence data');
+                break;
+                
+            case 'completed':
+                if (!order.completedAt) errors.push('Completed order must have completion timestamp');
+                if (!order.evidence) errors.push('Completed order must have evidence');
+                break;
+        }
+        
+        // Validate timeline consistency
+        if (order.timeline) {
+            const timelineStatuses = order.timeline.map(entry => entry.status);
+            const lastTimelineStatus = timelineStatuses[timelineStatuses.length - 1];
+            
+            if (lastTimelineStatus !== order.status) {
+                errors.push('Order status does not match latest timeline entry');
+            }
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
+    }
+
+    /**
+     * Booster starts an assigned order
+     */
+    startOrder(orderId, boosterId = 'current_user') {
+        const order = this.orders.get(orderId);
+        if (!order) {
+            throw new Error(`Order ${orderId} not found`);
+        }
+
+        if (order.status !== 'assigned') {
+            throw new Error('Only assigned orders can be started');
+        }
+
+        if (order.boosterId !== boosterId && boosterId !== 'current_user') {
+            throw new Error('Only the assigned booster can start this order');
+        }
+
+        try {
+            this.changeOrderStatus(orderId, 'in_progress', 'Service started by booster', boosterId);
+            
+            Components.showNotification({
+                type: 'success',
+                title: 'Order Started',
+                message: `Order ${orderId} has been started successfully.`,
+                duration: 3000
+            });
+
+            return order;
+        } catch (error) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Failed to Start Order',
+                message: error.message,
+                duration: 4000
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Booster submits evidence for an order
+     */
+    submitEvidence(orderId, evidenceData, boosterId = 'current_user') {
+        const order = this.orders.get(orderId);
+        if (!order) {
+            throw new Error(`Order ${orderId} not found`);
+        }
+
+        if (order.status !== 'in_progress') {
+            throw new Error('Only in-progress orders can have evidence submitted');
+        }
+
+        if (order.boosterId !== boosterId && boosterId !== 'current_user') {
+            throw new Error('Only the assigned booster can submit evidence for this order');
+        }
+
+        if (!evidenceData.imageUrl || !evidenceData.notes) {
+            throw new Error('Evidence must include both image and completion notes');
+        }
+
+        try {
+            // Set evidence data
+            order.evidence = {
+                imageUrl: evidenceData.imageUrl,
+                notes: evidenceData.notes,
+                uploadedAt: new Date().toISOString()
+            };
+
+            this.changeOrderStatus(orderId, 'evidence_submitted', 'Evidence uploaded by booster', boosterId);
+            
+            Components.showNotification({
+                type: 'success',
+                title: 'Evidence Submitted',
+                message: `Evidence for order ${orderId} has been submitted successfully.`,
+                duration: 3000
+            });
+
+            return order;
+        } catch (error) {
+            Components.showNotification({
+                type: 'error',
+                title: 'Failed to Submit Evidence',
+                message: error.message,
+                duration: 4000
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get orders requiring attention (for notifications)
+     */
+    getOrdersRequiringAttention() {
+        const attention = {
+            pendingAssignment: this.getOrdersByStatus('pending'),
+            evidenceToReview: this.getOrdersByStatus('under_review'),
+            rejectedOrders: this.getOrdersByStatus('rejected'),
+            overdueOrders: this.getOverdueOrders()
+        };
+
+        return attention;
+    }
+
+    /**
+     * Get overdue orders (in progress for more than expected time)
+     */
+    getOverdueOrders() {
+        const now = new Date();
+        const overdueThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+        return Array.from(this.orders.values()).filter(order => {
+            if (order.status !== 'in_progress') return false;
+            
+            const startTime = new Date(order.startedAt);
+            const timeDiff = now - startTime;
+            
+            return timeDiff > overdueThreshold;
+        });
+    }
+
+    /**
+     * Generate order status report
+     */
+    generateStatusReport() {
+        const stats = this.getOrderStatusStatistics();
+        const attention = this.getOrdersRequiringAttention();
+        
+        return {
+            summary: {
+                total: stats.total,
+                completed: stats.byStatus.completed || 0,
+                inProgress: stats.byStatus.in_progress || 0,
+                pending: stats.byStatus.pending || 0,
+                completionRate: stats.total > 0 ? ((stats.byStatus.completed || 0) / stats.total * 100).toFixed(1) : 0
+            },
+            attention: {
+                pendingAssignment: attention.pendingAssignment.length,
+                evidenceToReview: attention.evidenceToReview.length,
+                rejectedOrders: attention.rejectedOrders.length,
+                overdueOrders: attention.overdueOrders.length
+            },
+            timeRange: stats.byTimeRange
+        };
+    }
+
+    /**
+     * Export order data with timeline information
+     */
+    exportOrderWithTimeline(orderId) {
+        const order = this.orders.get(orderId);
+        if (!order) return null;
+
+        return {
+            ...order,
+            serviceTitle: this.getServiceTitle(order.serviceId),
+            buyerInfo: this.getBuyerInfo(order.buyerId),
+            boosterInfo: this.getBoosterInfo(order.boosterId),
+            workflowValidation: this.validateOrderWorkflow(orderId),
+            statusHistory: order.timeline || []
+        };
     }
 }
 

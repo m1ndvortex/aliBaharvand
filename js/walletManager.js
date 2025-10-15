@@ -471,9 +471,61 @@ class WalletManager {
             className: 'section-title'
         }, 'Transaction History');
 
-        // Transaction filters
+        // Action buttons
+        const actionButtons = Utils.DOM.create('div', {
+            className: 'transaction-actions'
+        });
+
+        const exportBtn = Components.createButton({
+            text: 'Export',
+            icon: '📊',
+            variant: 'secondary',
+            size: 'small',
+            onClick: () => this.exportTransactions()
+        });
+
+        const advancedFiltersBtn = Components.createButton({
+            text: 'Advanced Filters',
+            icon: '🔍',
+            variant: 'secondary',
+            size: 'small',
+            onClick: () => this.showAdvancedFilters()
+        });
+
+        actionButtons.appendChild(advancedFiltersBtn);
+        actionButtons.appendChild(exportBtn);
+
+        sectionHeader.appendChild(sectionTitle);
+        sectionHeader.appendChild(actionButtons);
+
+        // Search and basic filters
         const filtersContainer = Utils.DOM.create('div', {
             className: 'transaction-filters'
+        });
+
+        // Search input
+        const searchContainer = Utils.DOM.create('div', {
+            className: 'search-container'
+        });
+
+        const searchInput = Utils.DOM.create('input', {
+            className: 'search-input',
+            type: 'text',
+            id: 'transactionSearch',
+            placeholder: 'Search transactions...',
+            oninput: () => this.debounceSearch()
+        });
+
+        const searchIcon = Utils.DOM.create('span', {
+            className: 'search-icon'
+        }, '🔍');
+
+        searchContainer.appendChild(searchIcon);
+        searchContainer.appendChild(searchInput);
+
+        // Quick filters
+        const quickFilters = Utils.DOM.create('div', {
+            className: 'quick-filters'
         });
 
         const typeFilter = Utils.DOM.create('select', {
@@ -487,7 +539,8 @@ class WalletManager {
             { value: 'earning', label: 'Earnings' },
             { value: 'deposit', label: 'Deposits' },
             { value: 'withdrawal', label: 'Withdrawals' },
-            { value: 'conversion', label: 'Conversions' }
+            { value: 'conversion', label: 'Conversions' },
+            { value: 'team_earning', label: 'Team Earnings' }
         ];
 
         typeOptions.forEach(option => {
@@ -517,11 +570,44 @@ class WalletManager {
             currencyFilter.appendChild(optionEl);
         });
 
-        filtersContainer.appendChild(typeFilter);
-        filtersContainer.appendChild(currencyFilter);
+        const statusFilter = Utils.DOM.create('select', {
+            className: 'filter-select',
+            id: 'transactionStatusFilter',
+            onchange: () => this.filterTransactions()
+        });
 
-        sectionHeader.appendChild(sectionTitle);
-        sectionHeader.appendChild(filtersContainer);
+        const statusOptions = [
+            { value: 'all', label: 'All Status' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'failed', label: 'Failed' }
+        ];
+
+        statusOptions.forEach(option => {
+            const optionEl = Utils.DOM.create('option', {
+                value: option.value
+            }, option.label);
+            statusFilter.appendChild(optionEl);
+        });
+
+        quickFilters.appendChild(typeFilter);
+        quickFilters.appendChild(currencyFilter);
+        quickFilters.appendChild(statusFilter);
+
+        filtersContainer.appendChild(searchContainer);
+        filtersContainer.appendChild(quickFilters);
+
+        // Advanced filters container (initially hidden)
+        const advancedFiltersContainer = Utils.DOM.create('div', {
+            className: 'advanced-filters-container hidden',
+            id: 'advancedFiltersContainer'
+        });
+
+        // Transaction summary
+        const transactionSummary = Utils.DOM.create('div', {
+            className: 'transaction-summary',
+            id: 'transactionSummary'
+        });
 
         // Transaction list
         const transactionList = Utils.DOM.create('div', {
@@ -529,8 +615,21 @@ class WalletManager {
             id: 'transactionList'
         });
 
+        // Pagination
+        const paginationContainer = Utils.DOM.create('div', {
+            className: 'pagination-container',
+            id: 'paginationContainer'
+        });
+
         section.appendChild(sectionHeader);
+        section.appendChild(filtersContainer);
+        section.appendChild(advancedFiltersContainer);
+        section.appendChild(transactionSummary);
         section.appendChild(transactionList);
+        section.appendChild(paginationContainer);
+
+        // Initialize search debounce
+        this.searchTimeout = null;
 
         // Load transactions
         this.loadTransactionHistory();
@@ -799,35 +898,8 @@ class WalletManager {
      * Load and display transaction history
      */
     loadTransactionHistory() {
-        const transactionList = Utils.DOM.select('#transactionList');
-        if (!transactionList) return;
-
-        const transactions = Array.from(AppState.getState('wallet.transactions').values());
-        
-        // Sort by date (newest first)
-        transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        Utils.DOM.empty(transactionList);
-
-        if (transactions.length === 0) {
-            const emptyState = Utils.DOM.create('div', {
-                className: 'empty-state'
-            });
-
-            emptyState.innerHTML = `
-                <div class="empty-state-icon">📊</div>
-                <h4 class="empty-state-title">No Transactions Yet</h4>
-                <p class="empty-state-message">Your transaction history will appear here once you start using your wallet.</p>
-            `;
-
-            transactionList.appendChild(emptyState);
-            return;
-        }
-
-        transactions.forEach(transaction => {
-            const transactionItem = this.createTransactionItem(transaction);
-            transactionList.appendChild(transactionItem);
-        });
+        // Use filterTransactions instead to get the full functionality
+        this.filterTransactions();
     }
 
     /**
@@ -837,7 +909,8 @@ class WalletManager {
      */
     createTransactionItem(transaction) {
         const item = Utils.DOM.create('div', {
-            className: `transaction-item transaction-${transaction.type} transaction-${transaction.status}`
+            className: `transaction-item transaction-${transaction.type} transaction-${transaction.status}`,
+            onclick: () => this.showTransactionDetails(transaction)
         });
 
         const icon = Utils.DOM.create('div', {
@@ -876,8 +949,14 @@ class WalletManager {
             text: transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)
         });
 
+        // Add click indicator
+        const clickIndicator = Utils.DOM.create('div', {
+            className: 'click-indicator'
+        }, '👁️');
+
         details.appendChild(amount);
         details.appendChild(status);
+        details.appendChild(clickIndicator);
 
         content.appendChild(header);
         content.appendChild(details);
@@ -1912,48 +1991,217 @@ class WalletManager {
      * Filter transactions based on selected filters
      */
     filterTransactions() {
-        const typeFilter = Utils.DOM.select('#transactionTypeFilter')?.value;
-        const currencyFilter = Utils.DOM.select('#transactionCurrencyFilter')?.value;
+        const filters = this.getActiveFilters();
+        const transactionsData = AppState.getState('wallet.transactions');
         
-        let transactions = Array.from(AppState.getState('wallet.transactions').values());
-
-        // Apply filters
-        if (typeFilter && typeFilter !== 'all') {
-            transactions = transactions.filter(tx => tx.type === typeFilter);
+        // Handle both Map and object formats
+        let transactions;
+        if (transactionsData instanceof Map) {
+            transactions = Array.from(transactionsData.values());
+        } else if (typeof transactionsData === 'object' && transactionsData !== null) {
+            transactions = Object.values(transactionsData);
+        } else {
+            transactions = [];
         }
 
-        if (currencyFilter && currencyFilter !== 'all') {
-            transactions = transactions.filter(tx => tx.currency === currencyFilter);
-        }
+        // Apply all filters
+        transactions = this.applyFilters(transactions, filters);
 
-        // Sort by date (newest first)
-        transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Sort transactions
+        transactions = this.sortTransactions(transactions, filters.sortBy, filters.sortOrder);
+
+        // Update summary
+        this.updateTransactionSummary(transactions);
+
+        // Apply pagination
+        const paginatedTransactions = this.paginateTransactions(transactions, filters.page, filters.pageSize);
 
         // Update display
-        const transactionList = Utils.DOM.select('#transactionList');
-        if (transactionList) {
-            Utils.DOM.empty(transactionList);
+        this.displayTransactions(paginatedTransactions.transactions);
+        this.updatePagination(paginatedTransactions.totalPages, filters.page, transactions.length);
+    }
 
-            if (transactions.length === 0) {
-                const emptyState = Utils.DOM.create('div', {
-                    className: 'empty-state'
-                });
+    /**
+     * Get active filter values
+     * @returns {Object} Filter configuration
+     */
+    getActiveFilters() {
+        return {
+            type: Utils.DOM.select('#transactionTypeFilter')?.value || 'all',
+            currency: Utils.DOM.select('#transactionCurrencyFilter')?.value || 'all',
+            status: Utils.DOM.select('#transactionStatusFilter')?.value || 'all',
+            search: Utils.DOM.select('#transactionSearch')?.value || '',
+            dateFrom: Utils.DOM.select('#dateFromFilter')?.value || '',
+            dateTo: Utils.DOM.select('#dateToFilter')?.value || '',
+            amountMin: parseFloat(Utils.DOM.select('#amountMinFilter')?.value) || null,
+            amountMax: parseFloat(Utils.DOM.select('#amountMaxFilter')?.value) || null,
+            sortBy: Utils.DOM.select('#sortByFilter')?.value || 'date',
+            sortOrder: Utils.DOM.select('#sortOrderFilter')?.value || 'desc',
+            page: parseInt(Utils.DOM.select('#currentPage')?.dataset.page) || 1,
+            pageSize: parseInt(Utils.DOM.select('#pageSizeFilter')?.value) || 20
+        };
+    }
 
-                emptyState.innerHTML = `
-                    <div class="empty-state-icon">🔍</div>
-                    <h4 class="empty-state-title">No Matching Transactions</h4>
-                    <p class="empty-state-message">No transactions match your current filter criteria.</p>
-                `;
-
-                transactionList.appendChild(emptyState);
-                return;
+    /**
+     * Apply filters to transactions
+     * @param {Array} transactions - Transaction array
+     * @param {Object} filters - Filter configuration
+     * @returns {Array} Filtered transactions
+     */
+    applyFilters(transactions, filters) {
+        return transactions.filter(tx => {
+            // Type filter
+            if (filters.type !== 'all' && tx.type !== filters.type) {
+                return false;
             }
 
-            transactions.forEach(transaction => {
-                const transactionItem = this.createTransactionItem(transaction);
-                transactionList.appendChild(transactionItem);
+            // Currency filter
+            if (filters.currency !== 'all' && tx.currency !== filters.currency) {
+                return false;
+            }
+
+            // Status filter
+            if (filters.status !== 'all' && tx.status !== filters.status) {
+                return false;
+            }
+
+            // Search filter
+            if (filters.search) {
+                const searchTerm = filters.search.toLowerCase();
+                const searchableText = [
+                    tx.description,
+                    tx.id,
+                    tx.type,
+                    tx.status,
+                    tx.currency
+                ].join(' ').toLowerCase();
+                
+                if (!searchableText.includes(searchTerm)) {
+                    return false;
+                }
+            }
+
+            // Date range filter
+            if (filters.dateFrom) {
+                const txDate = new Date(tx.createdAt);
+                const fromDate = new Date(filters.dateFrom);
+                if (txDate < fromDate) {
+                    return false;
+                }
+            }
+
+            if (filters.dateTo) {
+                const txDate = new Date(tx.createdAt);
+                const toDate = new Date(filters.dateTo);
+                toDate.setHours(23, 59, 59, 999); // End of day
+                if (txDate > toDate) {
+                    return false;
+                }
+            }
+
+            // Amount range filter
+            const absAmount = Math.abs(tx.amount);
+            if (filters.amountMin !== null && absAmount < filters.amountMin) {
+                return false;
+            }
+
+            if (filters.amountMax !== null && absAmount > filters.amountMax) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Sort transactions
+     * @param {Array} transactions - Transaction array
+     * @param {string} sortBy - Sort field
+     * @param {string} sortOrder - Sort order (asc/desc)
+     * @returns {Array} Sorted transactions
+     */
+    sortTransactions(transactions, sortBy, sortOrder) {
+        return transactions.sort((a, b) => {
+            let aValue, bValue;
+
+            switch (sortBy) {
+                case 'date':
+                    aValue = new Date(a.createdAt);
+                    bValue = new Date(b.createdAt);
+                    break;
+                case 'amount':
+                    aValue = Math.abs(a.amount);
+                    bValue = Math.abs(b.amount);
+                    break;
+                case 'type':
+                    aValue = a.type;
+                    bValue = b.type;
+                    break;
+                case 'status':
+                    aValue = a.status;
+                    bValue = b.status;
+                    break;
+                default:
+                    aValue = new Date(a.createdAt);
+                    bValue = new Date(b.createdAt);
+            }
+
+            if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    /**
+     * Paginate transactions
+     * @param {Array} transactions - Transaction array
+     * @param {number} page - Current page
+     * @param {number} pageSize - Items per page
+     * @returns {Object} Pagination result
+     */
+    paginateTransactions(transactions, page, pageSize) {
+        const totalPages = Math.ceil(transactions.length / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        
+        return {
+            transactions: transactions.slice(startIndex, endIndex),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: transactions.length
+        };
+    }
+
+    /**
+     * Display filtered transactions
+     * @param {Array} transactions - Transactions to display
+     */
+    displayTransactions(transactions) {
+        const transactionList = Utils.DOM.select('#transactionList');
+        if (!transactionList) return;
+
+        Utils.DOM.empty(transactionList);
+
+        if (transactions.length === 0) {
+            const emptyState = Utils.DOM.create('div', {
+                className: 'empty-state'
             });
+
+            emptyState.innerHTML = `
+                <div class="empty-state-icon">🔍</div>
+                <h4 class="empty-state-title">No Matching Transactions</h4>
+                <p class="empty-state-message">No transactions match your current filter criteria.</p>
+                <button class="btn-secondary" onclick="walletManager.clearFilters()">Clear Filters</button>
+            `;
+
+            transactionList.appendChild(emptyState);
+            return;
         }
+
+        transactions.forEach(transaction => {
+            const transactionItem = this.createTransactionItem(transaction);
+            transactionList.appendChild(transactionItem);
+        });
     }
 
     /**
@@ -1961,6 +2209,767 @@ class WalletManager {
      */
     updateTransactionHistory() {
         this.loadTransactionHistory();
+    }
+
+    /**
+     * Show advanced filters modal
+     */
+    showAdvancedFilters() {
+        const advancedContainer = Utils.DOM.select('#advancedFiltersContainer');
+        if (advancedContainer) {
+            advancedContainer.classList.toggle('hidden');
+            
+            if (!advancedContainer.classList.contains('hidden')) {
+                this.createAdvancedFiltersContent(advancedContainer);
+            }
+        }
+    }
+
+    /**
+     * Create advanced filters content
+     * @param {Element} container - Container element
+     */
+    createAdvancedFiltersContent(container) {
+        if (container.children.length > 0) return; // Already created
+
+        const filtersGrid = Utils.DOM.create('div', {
+            className: 'advanced-filters-grid'
+        });
+
+        // Date range filters
+        const dateRangeGroup = Utils.DOM.create('div', {
+            className: 'filter-group'
+        });
+
+        const dateRangeLabel = Utils.DOM.create('label', {
+            className: 'filter-label'
+        }, 'Date Range');
+
+        const dateRangeInputs = Utils.DOM.create('div', {
+            className: 'date-range-inputs'
+        });
+
+        const dateFromInput = Utils.DOM.create('input', {
+            className: 'filter-input',
+            type: 'date',
+            id: 'dateFromFilter',
+            onchange: () => this.filterTransactions()
+        });
+
+        const dateToInput = Utils.DOM.create('input', {
+            className: 'filter-input',
+            type: 'date',
+            id: 'dateToFilter',
+            onchange: () => this.filterTransactions()
+        });
+
+        dateRangeInputs.appendChild(dateFromInput);
+        dateRangeInputs.appendChild(Utils.DOM.create('span', { className: 'date-separator' }, 'to'));
+        dateRangeInputs.appendChild(dateToInput);
+
+        dateRangeGroup.appendChild(dateRangeLabel);
+        dateRangeGroup.appendChild(dateRangeInputs);
+
+        // Amount range filters
+        const amountRangeGroup = Utils.DOM.create('div', {
+            className: 'filter-group'
+        });
+
+        const amountRangeLabel = Utils.DOM.create('label', {
+            className: 'filter-label'
+        }, 'Amount Range');
+
+        const amountRangeInputs = Utils.DOM.create('div', {
+            className: 'amount-range-inputs'
+        });
+
+        const amountMinInput = Utils.DOM.create('input', {
+            className: 'filter-input',
+            type: 'number',
+            id: 'amountMinFilter',
+            placeholder: 'Min amount',
+            min: '0',
+            step: 'any',
+            oninput: () => this.filterTransactions()
+        });
+
+        const amountMaxInput = Utils.DOM.create('input', {
+            className: 'filter-input',
+            type: 'number',
+            id: 'amountMaxFilter',
+            placeholder: 'Max amount',
+            min: '0',
+            step: 'any',
+            oninput: () => this.filterTransactions()
+        });
+
+        amountRangeInputs.appendChild(amountMinInput);
+        amountRangeInputs.appendChild(Utils.DOM.create('span', { className: 'amount-separator' }, 'to'));
+        amountRangeInputs.appendChild(amountMaxInput);
+
+        amountRangeGroup.appendChild(amountRangeLabel);
+        amountRangeGroup.appendChild(amountRangeInputs);
+
+        // Sort options
+        const sortGroup = Utils.DOM.create('div', {
+            className: 'filter-group'
+        });
+
+        const sortLabel = Utils.DOM.create('label', {
+            className: 'filter-label'
+        }, 'Sort By');
+
+        const sortInputs = Utils.DOM.create('div', {
+            className: 'sort-inputs'
+        });
+
+        const sortBySelect = Utils.DOM.create('select', {
+            className: 'filter-select',
+            id: 'sortByFilter',
+            onchange: () => this.filterTransactions()
+        });
+
+        const sortByOptions = [
+            { value: 'date', label: 'Date' },
+            { value: 'amount', label: 'Amount' },
+            { value: 'type', label: 'Type' },
+            { value: 'status', label: 'Status' }
+        ];
+
+        sortByOptions.forEach(option => {
+            const optionEl = Utils.DOM.create('option', {
+                value: option.value
+            }, option.label);
+            sortBySelect.appendChild(optionEl);
+        });
+
+        const sortOrderSelect = Utils.DOM.create('select', {
+            className: 'filter-select',
+            id: 'sortOrderFilter',
+            onchange: () => this.filterTransactions()
+        });
+
+        const sortOrderOptions = [
+            { value: 'desc', label: 'Newest First' },
+            { value: 'asc', label: 'Oldest First' }
+        ];
+
+        sortOrderOptions.forEach(option => {
+            const optionEl = Utils.DOM.create('option', {
+                value: option.value
+            }, option.label);
+            sortOrderSelect.appendChild(optionEl);
+        });
+
+        sortInputs.appendChild(sortBySelect);
+        sortInputs.appendChild(sortOrderSelect);
+
+        sortGroup.appendChild(sortLabel);
+        sortGroup.appendChild(sortInputs);
+
+        // Page size
+        const pageSizeGroup = Utils.DOM.create('div', {
+            className: 'filter-group'
+        });
+
+        const pageSizeLabel = Utils.DOM.create('label', {
+            className: 'filter-label'
+        }, 'Items per Page');
+
+        const pageSizeSelect = Utils.DOM.create('select', {
+            className: 'filter-select',
+            id: 'pageSizeFilter',
+            onchange: () => this.filterTransactions()
+        });
+
+        const pageSizeOptions = [
+            { value: '10', label: '10' },
+            { value: '20', label: '20' },
+            { value: '50', label: '50' },
+            { value: '100', label: '100' }
+        ];
+
+        pageSizeOptions.forEach(option => {
+            const optionEl = Utils.DOM.create('option', {
+                value: option.value
+            }, option.label);
+            if (option.value === '20') optionEl.selected = true;
+            pageSizeSelect.appendChild(optionEl);
+        });
+
+        pageSizeGroup.appendChild(pageSizeLabel);
+        pageSizeGroup.appendChild(pageSizeSelect);
+
+        // Add all groups to grid
+        filtersGrid.appendChild(dateRangeGroup);
+        filtersGrid.appendChild(amountRangeGroup);
+        filtersGrid.appendChild(sortGroup);
+        filtersGrid.appendChild(pageSizeGroup);
+
+        // Clear filters button
+        const clearFiltersBtn = Components.createButton({
+            text: 'Clear All Filters',
+            variant: 'secondary',
+            onClick: () => this.clearFilters()
+        });
+
+        container.appendChild(filtersGrid);
+        container.appendChild(clearFiltersBtn);
+    }
+
+    /**
+     * Clear all filters
+     */
+    clearFilters() {
+        // Clear basic filters
+        const typeFilter = Utils.DOM.select('#transactionTypeFilter');
+        const currencyFilter = Utils.DOM.select('#transactionCurrencyFilter');
+        const statusFilter = Utils.DOM.select('#transactionStatusFilter');
+        const searchInput = Utils.DOM.select('#transactionSearch');
+
+        if (typeFilter) typeFilter.value = 'all';
+        if (currencyFilter) currencyFilter.value = 'all';
+        if (statusFilter) statusFilter.value = 'all';
+        if (searchInput) searchInput.value = '';
+
+        // Clear advanced filters
+        const dateFromFilter = Utils.DOM.select('#dateFromFilter');
+        const dateToFilter = Utils.DOM.select('#dateToFilter');
+        const amountMinFilter = Utils.DOM.select('#amountMinFilter');
+        const amountMaxFilter = Utils.DOM.select('#amountMaxFilter');
+        const sortByFilter = Utils.DOM.select('#sortByFilter');
+        const sortOrderFilter = Utils.DOM.select('#sortOrderFilter');
+        const pageSizeFilter = Utils.DOM.select('#pageSizeFilter');
+
+        if (dateFromFilter) dateFromFilter.value = '';
+        if (dateToFilter) dateToFilter.value = '';
+        if (amountMinFilter) amountMinFilter.value = '';
+        if (amountMaxFilter) amountMaxFilter.value = '';
+        if (sortByFilter) sortByFilter.value = 'date';
+        if (sortOrderFilter) sortOrderFilter.value = 'desc';
+        if (pageSizeFilter) pageSizeFilter.value = '20';
+
+        // Reset pagination
+        const currentPageEl = Utils.DOM.select('#currentPage');
+        if (currentPageEl) currentPageEl.dataset.page = '1';
+
+        // Refresh display
+        this.filterTransactions();
+
+        Components.showNotification({
+            type: 'info',
+            title: 'Filters Cleared',
+            message: 'All transaction filters have been reset.',
+            duration: 2000
+        });
+    }
+
+    /**
+     * Debounced search function
+     */
+    debounceSearch() {
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+        
+        this.searchTimeout = setTimeout(() => {
+            this.filterTransactions();
+        }, 300);
+    }
+
+    /**
+     * Update transaction summary
+     * @param {Array} transactions - Filtered transactions
+     */
+    updateTransactionSummary(transactions) {
+        const summaryContainer = Utils.DOM.select('#transactionSummary');
+        if (!summaryContainer) return;
+
+        const summary = this.calculateTransactionSummary(transactions);
+
+        summaryContainer.innerHTML = `
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <span class="stat-label">Total Transactions:</span>
+                    <span class="stat-value">${summary.totalCount}</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-label">Total Earnings:</span>
+                    <span class="stat-value positive">+${this.formatCurrency(summary.totalEarnings.gold, 'gold')} | +${this.formatCurrency(summary.totalEarnings.usd, 'usd')} | +${this.formatCurrency(summary.totalEarnings.toman, 'toman')}</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-label">Total Spent:</span>
+                    <span class="stat-value negative">-${this.formatCurrency(Math.abs(summary.totalSpent.gold), 'gold')} | -${this.formatCurrency(Math.abs(summary.totalSpent.usd), 'usd')} | -${this.formatCurrency(Math.abs(summary.totalSpent.toman), 'toman')}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Calculate transaction summary
+     * @param {Array} transactions - Transactions to summarize
+     * @returns {Object} Summary data
+     */
+    calculateTransactionSummary(transactions) {
+        const summary = {
+            totalCount: transactions.length,
+            totalEarnings: { gold: 0, usd: 0, toman: 0 },
+            totalSpent: { gold: 0, usd: 0, toman: 0 },
+            byType: {},
+            byStatus: {}
+        };
+
+        transactions.forEach(tx => {
+            // Count by type
+            summary.byType[tx.type] = (summary.byType[tx.type] || 0) + 1;
+            
+            // Count by status
+            summary.byStatus[tx.status] = (summary.byStatus[tx.status] || 0) + 1;
+
+            // Calculate earnings and spending
+            if (tx.amount > 0) {
+                summary.totalEarnings[tx.currency] += tx.amount;
+            } else {
+                summary.totalSpent[tx.currency] += tx.amount;
+            }
+        });
+
+        return summary;
+    }
+
+    /**
+     * Update pagination controls
+     * @param {number} totalPages - Total number of pages
+     * @param {number} currentPage - Current page number
+     * @param {number} totalItems - Total number of items
+     */
+    updatePagination(totalPages, currentPage, totalItems) {
+        const paginationContainer = Utils.DOM.select('#paginationContainer');
+        if (!paginationContainer) return;
+
+        Utils.DOM.empty(paginationContainer);
+
+        if (totalPages <= 1) return;
+
+        const pagination = Utils.DOM.create('div', {
+            className: 'pagination'
+        });
+
+        // Previous button
+        const prevBtn = Components.createButton({
+            text: '← Previous',
+            variant: 'secondary',
+            size: 'small',
+            disabled: currentPage === 1,
+            onClick: () => this.changePage(currentPage - 1)
+        });
+
+        pagination.appendChild(prevBtn);
+
+        // Page numbers
+        const pageNumbers = Utils.DOM.create('div', {
+            className: 'page-numbers'
+        });
+
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = Components.createButton({
+                text: i.toString(),
+                variant: i === currentPage ? 'primary' : 'secondary',
+                size: 'small',
+                onClick: () => this.changePage(i)
+            });
+
+            if (i === currentPage) {
+                pageBtn.id = 'currentPage';
+                pageBtn.dataset.page = i;
+            }
+
+            pageNumbers.appendChild(pageBtn);
+        }
+
+        pagination.appendChild(pageNumbers);
+
+        // Next button
+        const nextBtn = Components.createButton({
+            text: 'Next →',
+            variant: 'secondary',
+            size: 'small',
+            disabled: currentPage === totalPages,
+            onClick: () => this.changePage(currentPage + 1)
+        });
+
+        pagination.appendChild(nextBtn);
+
+        // Page info
+        const pageInfo = Utils.DOM.create('div', {
+            className: 'page-info'
+        }, `Showing ${((currentPage - 1) * 20) + 1}-${Math.min(currentPage * 20, totalItems)} of ${totalItems} transactions`);
+
+        paginationContainer.appendChild(pagination);
+        paginationContainer.appendChild(pageInfo);
+    }
+
+    /**
+     * Change page
+     * @param {number} page - New page number
+     */
+    changePage(page) {
+        const currentPageEl = Utils.DOM.select('#currentPage');
+        if (currentPageEl) {
+            currentPageEl.dataset.page = page;
+        }
+        this.filterTransactions();
+    }
+
+    /**
+     * Show transaction details modal
+     * @param {Object} transaction - Transaction data
+     */
+    showTransactionDetails(transaction) {
+        const modalContent = Utils.DOM.create('div', {
+            className: 'transaction-details-modal'
+        });
+
+        // Transaction header
+        const header = Utils.DOM.create('div', {
+            className: 'transaction-modal-header'
+        });
+
+        const icon = Utils.DOM.create('div', {
+            className: 'transaction-modal-icon'
+        }, this.getTransactionIcon(transaction.type));
+
+        const headerInfo = Utils.DOM.create('div', {
+            className: 'transaction-modal-info'
+        });
+
+        const title = Utils.DOM.create('h3', {
+            className: 'transaction-modal-title'
+        }, transaction.description);
+
+        const subtitle = Utils.DOM.create('p', {
+            className: 'transaction-modal-subtitle'
+        }, `Transaction ID: ${transaction.id}`);
+
+        headerInfo.appendChild(title);
+        headerInfo.appendChild(subtitle);
+
+        header.appendChild(icon);
+        header.appendChild(headerInfo);
+
+        // Transaction details
+        const details = Utils.DOM.create('div', {
+            className: 'transaction-modal-details'
+        });
+
+        const detailsGrid = Utils.DOM.create('div', {
+            className: 'details-grid'
+        });
+
+        // Basic details
+        const basicDetails = [
+            { label: 'Type', value: transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) },
+            { label: 'Amount', value: `${transaction.amount >= 0 ? '+' : ''}${this.formatCurrency(transaction.amount, transaction.currency)}` },
+            { label: 'Currency', value: transaction.currency.toUpperCase() },
+            { label: 'Status', value: transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1) },
+            { label: 'Created', value: Utils.Format.date(transaction.createdAt, 'datetime') },
+            { label: 'Completed', value: transaction.completedAt ? Utils.Format.date(transaction.completedAt, 'datetime') : 'Pending' }
+        ];
+
+        basicDetails.forEach(detail => {
+            const detailRow = Utils.DOM.create('div', {
+                className: 'detail-row'
+            });
+
+            const label = Utils.DOM.create('span', {
+                className: 'detail-label'
+            }, detail.label + ':');
+
+            const value = Utils.DOM.create('span', {
+                className: 'detail-value'
+            }, detail.value);
+
+            detailRow.appendChild(label);
+            detailRow.appendChild(value);
+            detailsGrid.appendChild(detailRow);
+        });
+
+        details.appendChild(detailsGrid);
+
+        // Additional details based on transaction type
+        if (transaction.conversionDetails) {
+            const conversionSection = this.createConversionDetailsSection(transaction.conversionDetails);
+            details.appendChild(conversionSection);
+        }
+
+        if (transaction.orderId) {
+            const orderSection = this.createOrderDetailsSection(transaction.orderId);
+            details.appendChild(orderSection);
+        }
+
+        if (transaction.paymentMethodId) {
+            const paymentSection = this.createPaymentDetailsSection(transaction.paymentMethodId);
+            details.appendChild(paymentSection);
+        }
+
+        modalContent.appendChild(header);
+        modalContent.appendChild(details);
+
+        Components.showModal({
+            title: 'Transaction Details',
+            content: modalContent,
+            size: 'large',
+            footer: [
+                Components.createButton({
+                    text: 'Close',
+                    variant: 'secondary',
+                    onClick: () => Components.closeModal()
+                })
+            ]
+        });
+    }
+
+    /**
+     * Create conversion details section
+     * @param {Object} conversionDetails - Conversion details
+     * @returns {Element} Conversion details section
+     */
+    createConversionDetailsSection(conversionDetails) {
+        const section = Utils.DOM.create('div', {
+            className: 'conversion-details-section'
+        });
+
+        const sectionTitle = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, 'Conversion Details');
+
+        const conversionGrid = Utils.DOM.create('div', {
+            className: 'conversion-grid'
+        });
+
+        const conversionData = [
+            { label: 'From Amount', value: this.formatCurrency(conversionDetails.fromAmount, conversionDetails.fromCurrency) },
+            { label: 'To Amount', value: this.formatCurrency(conversionDetails.toAmount, conversionDetails.toCurrency) },
+            { label: 'Exchange Rate', value: `1 ${conversionDetails.fromCurrency.toUpperCase()} = ${conversionDetails.exchangeRate} ${conversionDetails.toCurrency.toUpperCase()}` },
+            { label: 'Conversion Fee', value: this.formatCurrency(conversionDetails.fee, conversionDetails.fromCurrency) }
+        ];
+
+        conversionData.forEach(item => {
+            const row = Utils.DOM.create('div', {
+                className: 'detail-row'
+            });
+
+            const label = Utils.DOM.create('span', {
+                className: 'detail-label'
+            }, item.label + ':');
+
+            const value = Utils.DOM.create('span', {
+                className: 'detail-value'
+            }, item.value);
+
+            row.appendChild(label);
+            row.appendChild(value);
+            conversionGrid.appendChild(row);
+        });
+
+        section.appendChild(sectionTitle);
+        section.appendChild(conversionGrid);
+
+        return section;
+    }
+
+    /**
+     * Create order details section
+     * @param {string} orderId - Order ID
+     * @returns {Element} Order details section
+     */
+    createOrderDetailsSection(orderId) {
+        const section = Utils.DOM.create('div', {
+            className: 'order-details-section'
+        });
+
+        const sectionTitle = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, 'Related Order');
+
+        const orderInfo = Utils.DOM.create('div', {
+            className: 'order-info'
+        });
+
+        // Find order in mock data
+        const order = MockData.orders.find(o => o.id === orderId);
+        if (order) {
+            const service = MockData.services.find(s => s.id === order.serviceId);
+            
+            orderInfo.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span class="detail-value">${order.id}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Service:</span>
+                    <span class="detail-value">${service ? service.title : 'Unknown Service'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${order.status}</span>
+                </div>
+            `;
+        } else {
+            orderInfo.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span class="detail-value">${orderId}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">Order details not available</span>
+                </div>
+            `;
+        }
+
+        section.appendChild(sectionTitle);
+        section.appendChild(orderInfo);
+
+        return section;
+    }
+
+    /**
+     * Create payment details section
+     * @param {string} paymentMethodId - Payment method ID
+     * @returns {Element} Payment details section
+     */
+    createPaymentDetailsSection(paymentMethodId) {
+        const section = Utils.DOM.create('div', {
+            className: 'payment-details-section'
+        });
+
+        const sectionTitle = Utils.DOM.create('h4', {
+            className: 'section-title'
+        }, 'Payment Method');
+
+        const paymentInfo = Utils.DOM.create('div', {
+            className: 'payment-info'
+        });
+
+        // Find payment method in wallet data
+        const wallet = AppState.getState('wallet');
+        const paymentMethod = wallet.paymentMethods.get(paymentMethodId);
+
+        if (paymentMethod) {
+            paymentInfo.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${paymentMethod.type.replace('_', ' ').toUpperCase()}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Details:</span>
+                    <span class="detail-value">${paymentMethod.lastFour ? `****${paymentMethod.lastFour}` : paymentMethod.email || 'N/A'}</span>
+                </div>
+            `;
+        } else {
+            paymentInfo.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Payment Method:</span>
+                    <span class="detail-value">Details not available</span>
+                </div>
+            `;
+        }
+
+        section.appendChild(sectionTitle);
+        section.appendChild(paymentInfo);
+
+        return section;
+    }
+
+    /**
+     * Export transactions to CSV
+     */
+    exportTransactions() {
+        const filters = this.getActiveFilters();
+        let transactions = Array.from(AppState.getState('wallet.transactions').values());
+
+        // Apply current filters
+        transactions = this.applyFilters(transactions, filters);
+        transactions = this.sortTransactions(transactions, filters.sortBy, filters.sortOrder);
+
+        if (transactions.length === 0) {
+            Components.showNotification({
+                type: 'warning',
+                title: 'No Data to Export',
+                message: 'No transactions match your current filter criteria.',
+                duration: 3000
+            });
+            return;
+        }
+
+        // Create CSV content
+        const csvContent = this.generateCSV(transactions);
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        Components.showNotification({
+            type: 'success',
+            title: 'Export Complete',
+            message: `${transactions.length} transactions exported successfully.`,
+            duration: 3000
+        });
+    }
+
+    /**
+     * Generate CSV content from transactions
+     * @param {Array} transactions - Transactions to export
+     * @returns {string} CSV content
+     */
+    generateCSV(transactions) {
+        const headers = [
+            'Transaction ID',
+            'Date',
+            'Type',
+            'Description',
+            'Amount',
+            'Currency',
+            'Status',
+            'Order ID',
+            'Payment Method',
+            'Completed Date'
+        ];
+
+        const csvRows = [headers.join(',')];
+
+        transactions.forEach(tx => {
+            const row = [
+                tx.id,
+                Utils.Format.date(tx.createdAt, 'datetime'),
+                tx.type,
+                `"${tx.description.replace(/"/g, '""')}"`, // Escape quotes
+                tx.amount,
+                tx.currency,
+                tx.status,
+                tx.orderId || '',
+                tx.paymentMethodId || '',
+                tx.completedAt ? Utils.Format.date(tx.completedAt, 'datetime') : ''
+            ];
+
+            csvRows.push(row.join(','));
+        });
+
+        return csvRows.join('\n');
     }
 
     /**

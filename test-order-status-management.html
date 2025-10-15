@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Management Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Order Status Management Test</h1>
+        </div>
+        
+        <div class="dashboard-content">
+            <main class="main-content">
+                <div class="content-area">
+                    <div class="test-controls">
+                        <h2>Test Order Status Management</h2>
+                        <div class="test-buttons">
+                            <button id="testOrderCreation" class="btn btn-primary">Create Test Order</button>
+                            <button id="testStatusTransitions" class="btn btn-secondary">Test Status Transitions</button>
+                            <button id="testValidation" class="btn btn-warning">Test Validation</button>
+                            <button id="showOrderDetails" class="btn btn-info">Show Order Details</button>
+                            <button id="generateReport" class="btn btn-success">Generate Report</button>
+                        </div>
+                    </div>
+                    
+                    <div id="testResults" class="test-results">
+                        <!-- Test results will be displayed here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Include all necessary scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/mockData.js"></script>
+    <script src="js/orderManager.js"></script>
+
+    <script>
+        // Test script for order status management
+        document.addEventListener('DOMContentLoaded', function() {
+            const testResults = document.getElementById('testResults');
+            let testOrderId = null;
+
+            function logResult(message, type = 'info') {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result test-${type}`;
+                resultDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+                testResults.appendChild(resultDiv);
+                testResults.scrollTop = testResults.scrollHeight;
+            }
+
+            // Test order creation
+            document.getElementById('testOrderCreation').addEventListener('click', function() {
+                try {
+                    // Create a test order
+                    const testOrder = {
+                        id: 'test_order_' + Date.now(),
+                        serviceId: 'service_001',
+                        buyerId: 'buyer_001',
+                        boosterId: null,
+                        advertiserId: 'user_001',
+                        status: 'pending',
+                        pricePaid: 500,
+                        currencyUsed: 'gold',
+                        gameCredentials: { 
+                            username: 'TestChar', 
+                            realm: 'TestRealm',
+                            characterClass: 'Test Class',
+                            characterLevel: 80
+                        },
+                        specialInstructions: 'This is a test order for status management testing.',
+                        evidence: null,
+                        reviewNotes: null,
+                        createdAt: new Date().toISOString(),
+                        assignedAt: null,
+                        startedAt: null,
+                        completedAt: null,
+                        timeline: [
+                            { 
+                                status: 'pending', 
+                                timestamp: new Date().toISOString(), 
+                                note: 'Test order created',
+                                userId: 'test_user',
+                                userInfo: { username: 'TestUser', avatar: null }
+                            }
+                        ]
+                    };
+
+                    OrderManager_Instance.orders.set(testOrder.id, testOrder);
+                    testOrderId = testOrder.id;
+                    
+                    logResult(`✅ Test order created successfully: ${testOrder.id}`, 'success');
+                    logResult(`📋 Order status: ${testOrder.status}`, 'info');
+                } catch (error) {
+                    logResult(`❌ Failed to create test order: ${error.message}`, 'error');
+                }
+            });
+
+            // Test status transitions
+            document.getElementById('testStatusTransitions').addEventListener('click', function() {
+                if (!testOrderId) {
+                    logResult('❌ Please create a test order first', 'error');
+                    return;
+                }
+
+                try {
+                    const order = OrderManager_Instance.orders.get(testOrderId);
+                    logResult(`🔄 Testing status transitions for order: ${testOrderId}`, 'info');
+                    
+                    // Test 1: Assign booster
+                    order.boosterId = 'user_001';
+                    OrderManager_Instance.changeOrderStatus(testOrderId, 'assigned', 'Test assignment', 'test_user');
+                    logResult(`✅ Status changed to: assigned`, 'success');
+                    
+                    // Test 2: Start order
+                    OrderManager_Instance.changeOrderStatus(testOrderId, 'in_progress', 'Test start', 'test_user');
+                    logResult(`✅ Status changed to: in_progress`, 'success');
+                    
+                    // Test 3: Submit evidence
+                    order.evidence = {
+                        imageUrl: '/test-image.png',
+                        notes: 'Test evidence notes',
+                        uploadedAt: new Date().toISOString()
+                    };
+                    OrderManager_Instance.changeOrderStatus(testOrderId, 'evidence_submitted', 'Test evidence submission', 'test_user');
+                    logResult(`✅ Status changed to: evidence_submitted`, 'success');
+                    
+                    // Test 4: Complete order
+                    OrderManager_Instance.changeOrderStatus(testOrderId, 'completed', 'Test completion', 'test_user');
+                    logResult(`✅ Status changed to: completed`, 'success');
+                    
+                    logResult(`🎉 All status transitions completed successfully!`, 'success');
+                    
+                } catch (error) {
+                    logResult(`❌ Status transition failed: ${error.message}`, 'error');
+                }
+            });
+
+            // Test validation
+            document.getElementById('testValidation').addEventListener('click', function() {
+                try {
+                    logResult(`🔍 Testing validation rules...`, 'info');
+                    
+                    // Test invalid transitions
+                    const testCases = [
+                        { from: 'pending', to: 'completed', shouldFail: true },
+                        { from: 'assigned', to: 'evidence_submitted', shouldFail: true },
+                        { from: 'pending', to: 'assigned', shouldFail: false },
+                        { from: 'assigned', to: 'in_progress', shouldFail: false }
+                    ];
+                    
+                    testCases.forEach(testCase => {
+                        const isValid = OrderManager_Instance.isValidStatusTransition(testCase.from, testCase.to);
+                        const expected = !testCase.shouldFail;
+                        
+                        if (isValid === expected) {
+                            logResult(`✅ Validation test passed: ${testCase.from} → ${testCase.to} (${isValid ? 'valid' : 'invalid'})`, 'success');
+                        } else {
+                            logResult(`❌ Validation test failed: ${testCase.from} → ${testCase.to} (expected ${expected}, got ${isValid})`, 'error');
+                        }
+                    });
+                    
+                    // Test workflow validation
+                    if (testOrderId) {
+                        const validation = OrderManager_Instance.validateOrderWorkflow(testOrderId);
+                        if (validation.isValid) {
+                            logResult(`✅ Workflow validation passed for test order`, 'success');
+                        } else {
+                            logResult(`❌ Workflow validation failed: ${validation.errors.join(', ')}`, 'error');
+                        }
+                    }
+                    
+                } catch (error) {
+                    logResult(`❌ Validation test failed: ${error.message}`, 'error');
+                }
+            });
+
+            // Show order details
+            document.getElementById('showOrderDetails').addEventListener('click', function() {
+                if (!testOrderId) {
+                    logResult('❌ Please create a test order first', 'error');
+                    return;
+                }
+
+                try {
+                    OrderManager_Instance.showOrderDetails(testOrderId);
+                    logResult(`👁️ Order details modal opened for: ${testOrderId}`, 'info');
+                } catch (error) {
+                    logResult(`❌ Failed to show order details: ${error.message}`, 'error');
+                }
+            });
+
+            // Generate report
+            document.getElementById('generateReport').addEventListener('click', function() {
+                try {
+                    const report = OrderManager_Instance.generateStatusReport();
+                    logResult(`📊 Status Report Generated:`, 'info');
+                    logResult(`📈 Total Orders: ${report.summary.total}`, 'info');
+                    logResult(`✅ Completed: ${report.summary.completed}`, 'info');
+                    logResult(`🔄 In Progress: ${report.summary.inProgress}`, 'info');
+                    logResult(`⏳ Pending: ${report.summary.pending}`, 'info');
+                    logResult(`📊 Completion Rate: ${report.summary.completionRate}%`, 'info');
+                    logResult(`⚠️ Orders Requiring Attention: ${report.attention.pendingAssignment + report.attention.evidenceToReview + report.attention.rejectedOrders + report.attention.overdueOrders}`, 'info');
+                } catch (error) {
+                    logResult(`❌ Failed to generate report: ${error.message}`, 'error');
+                }
+            });
+
+            // Listen for order status change events
+            document.addEventListener('orderStatusChanged', function(event) {
+                const { orderId, previousStatus, newStatus } = event.detail;
+                logResult(`🔔 Status Change Event: Order ${orderId} changed from ${previousStatus} to ${newStatus}`, 'info');
+            });
+
+            logResult('🚀 Order Status Management Test initialized. Click buttons to run tests.', 'info');
+        });
+    </script>
+
+    <style>
+        .test-controls {
+            background-color: var(--bg-secondary);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            margin-top: var(--spacing-md);
+        }
+
+        .test-results {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: var(--font-size-sm);
+        }
+
+        .test-result {
+            padding: var(--spacing-xs) 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .test-result:last-child {
+            border-bottom: none;
+        }
+
+        .test-success {
+            color: var(--success-color);
+        }
+
+        .test-error {
+            color: var(--error-color);
+        }
+
+        .test-warning {
+            color: var(--warning-color);
+        }
+
+        .test-info {
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: var(--font-weight-medium);
+            transition: all var(--transition-fast);
+        }
+
+        .btn-primary {
+            background-color: var(--discord-blurple);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--text-primary);
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</body>
+</html>

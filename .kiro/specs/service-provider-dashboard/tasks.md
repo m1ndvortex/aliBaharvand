@@ -251,7 +251,12 @@
     - Build conversion limits and validation system
     - _Requirements: 7.4, 7.5_
 
-  - [ ] 7.4 Create transaction history system
+  - [x] 7.4 Create transaction history system
+
+
+
+
+
     - Build comprehensive transaction listing with all transaction types
     - Implement advanced filtering by date, type, currency, and amount
     - Create transaction details modal with complete information
@@ -260,7 +265,12 @@
     - _Requirements: 7.5_
 
 - [ ] 8. Build order workflow and evidence system
-  - [ ] 8.1 Implement complete order status management
+  - [x] 8.1 Implement complete order status management
+
+
+
+
+
     - Create order status tracking through all workflow stages
     - Build status change notifications and updates
     - Implement order timeline with detailed history tracking
@@ -269,6 +279,7 @@
     - _Requirements: 10.1_
 
   - [ ] 8.2 Build evidence review system
+
     - Create evidence review modal with image display and zoom capabilities
     - Implement evidence approval/rejection interface with reason input
     - Build evidence history tracking with reviewer information
