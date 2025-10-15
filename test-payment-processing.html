@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Processing Workflow Test</title>
+    <link rel="stylesheet" href="styles/components.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-primary, #f5f5f5);
+            color: var(--text-primary, #333);
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .test-button.primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .test-button.success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .test-button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .test-button.danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .test-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .test-results {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-error { background: #dc3545; }
+        .status-info { background: #17a2b8; }
+        
+        .mock-order {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .mock-order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .mock-order-id {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .mock-order-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background: #ffc107; color: #212529; }
+        .status-assigned { background: #17a2b8; color: white; }
+        .status-in_progress { background: #007bff; color: white; }
+        .status-evidence_submitted { background: #6f42c1; color: white; }
+        .status-completed { background: #28a745; color: white; }
+        .status-rejected { background: #dc3545; color: white; }
+        
+        .payment-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .notification {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border-left: 4px solid;
+        }
+        
+        .notification.success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .notification.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .notification.warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        
+        .notification.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🔄 Payment Processing Workflow Test</h1>
+            <p>Test the complete payment processing system including holds, releases, reversals, and audit trails</p>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <div class="test-controls">
+                <button class="test-button primary" onclick="initializeTest()">Initialize Test Environment</button>
+                <button class="test-button success" onclick="runFullWorkflowTest()">Run Full Workflow Test</button>
+                <button class="test-button warning" onclick="testPaymentHold()">Test Payment Hold</button>
+                <button class="test-button warning" onclick="testPaymentRelease()">Test Payment Release</button>
+                <button class="test-button danger" onclick="testPaymentReversal()">Test Payment Reversal</button>
+                <button class="test-button primary" onclick="viewPaymentManagement()">View Payment Management</button>
+                <button class="test-button primary" onclick="clearTestData()">Clear Test Data</button>
+            </div>
+            <div id="test-status" class="test-results"></div>
+        </div>
+
+        <!-- Mock Orders Section -->
+        <div class="test-section">
+            <h2>Mock Orders for Testing</h2>
+            <div id="mock-orders-container"></div>
+        </div>
+
+        <!-- Payment Holds Section -->
+        <div class="test-section">
+            <h2>Active Payment Holds</h2>
+            <div id="payment-holds-container"></div>
+        </div>
+
+        <!-- Audit Trail Section -->
+        <div class="test-section">
+            <h2>Payment Audit Trail</h2>
+            <div id="audit-trail-container"></div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="test-section">
+            <h2>Payment Notifications</h2>
+            <div id="notifications-container"></div>
+        </div>
+
+        <!-- Payment Management Interface -->
+        <div class="test-section" style="display: none;" id="payment-management-section">
+            <h2>Payment Management Interface</h2>
+            <div id="payment-management-container"></div>
+        </div>
+    </div>
+
+    <!-- Include all necessary scripts -->
+    <script src="js/mockData.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/paymentProcessor.js"></script>
+    <script src="js/paymentManager.js"></script>
+    <script src="js/orderManager.js"></script>
+
+    <script>
+        // Test state
+        let testOrders = new Map();
+        let testResults = [];
+        let notificationCount = 0;
+
+        // Initialize test environment
+        async function initializeTest() {
+            logTest('🚀 Initializing test environment...');
+            
+            try {
+                // Check if PaymentProcessor is already initialized
+                if (window.PaymentProcessor && !window.PaymentProcessor.initialized) {
+                    await window.PaymentProcessor.init();
+                    logTest('✅ PaymentProcessor initialized');
+                } else {
+                    logTest('✅ PaymentProcessor already initialized');
+                }
+                
+                // Check if PaymentManager exists and initialize if needed
+                if (window.PaymentManager && !window.PaymentManager.initialized) {
+                    await window.PaymentManager.init();
+                    logTest('✅ PaymentManager initialized');
+                } else {
+                    logTest('✅ PaymentManager ready');
+                }
+                
+                // Create test orders
+                createTestOrders();
+                logTest('✅ Test orders created');
+                
+                // Set up notification listener
+                setupNotificationListener();
+                logTest('✅ Notification listener set up');
+                
+                // Update displays
+                updateMockOrdersDisplay();
+                updatePaymentHoldsDisplay();
+                updateAuditTrailDisplay();
+                
+                logTest('🎉 Test environment initialized successfully!');
+                
+            } catch (error) {
+                logTest(`❌ Error initializing test environment: ${error.message}`, 'error');
+                console.error('Test initialization error:', error);
+            }
+        }
+
+        // Create test orders
+        function createTestOrders() {
+            const testOrdersData = [
+                {
+                    id: 'test_order_001',
+                    serviceId: 'service_001',
+                    buyerId: 'buyer_001',
+                    boosterId: null,
+                    advertiserId: 'user_001',
+                    status: 'pending',
+                    pricePaid: 500,
+                    currencyUsed: 'gold',
+                    gameCredentials: { username: 'TestChar1', realm: 'TestRealm' },
+                    specialInstructions: 'Test order for payment hold workflow',
+                    createdAt: new Date().toISOString(),
+                    timeline: [
+                        { status: 'pending', timestamp: new Date().toISOString(), note: 'Test order created' }
+                    ]
+                },
+                {
+                    id: 'test_order_002',
+                    serviceId: 'service_002',
+                    buyerId: 'buyer_002',
+                    boosterId: 'user_002',
+                    advertiserId: 'user_002',
+                    status: 'evidence_submitted',
+                    pricePaid: 25.00,
+                    currencyUsed: 'usd',
+                    gameCredentials: { username: 'TestChar2', realm: 'TestRealm' },
+                    specialInstructions: 'Test order for payment release workflow',
+                    evidence: {
+                        imageUrl: '/test-evidence.png',
+                        notes: 'Test evidence for completion',
+                        uploadedAt: new Date().toISOString()
+                    },
+                    createdAt: new Date(Date.now() - 3600000).toISOString(),
+                    assignedAt: new Date(Date.now() - 3000000).toISOString(),
+                    timeline: [
+                        { status: 'pending', timestamp: new Date(Date.now() - 3600000).toISOString(), note: 'Test order created' },
+                        { status: 'assigned', timestamp: new Date(Date.now() - 3000000).toISOString(), note: 'Assigned to test booster' },
+                        { status: 'in_progress', timestamp: new Date(Date.now() - 1800000).toISOString(), note: 'Service started' },
+                        { status: 'evidence_submitted', timestamp: new Date().toISOString(), note: 'Evidence submitted for review' }
+                    ]
+                },
+                {
+                    id: 'test_order_003',
+                    serviceId: 'service_003',
+                    buyerId: 'buyer_003',
+                    boosterId: 'user_003',
+                    advertiserId: 'user_003',
+                    status: 'evidence_submitted',
+                    pricePaid: 1500000,
+                    currencyUsed: 'toman',
+                    gameCredentials: { username: 'TestChar3', realm: 'TestRealm' },
+                    specialInstructions: 'Test order for payment reversal workflow',
+                    evidence: {
+                        imageUrl: '/test-evidence-bad.png',
+                        notes: 'Incomplete service - should be rejected',
+                        uploadedAt: new Date().toISOString()
+                    },
+                    createdAt: new Date(Date.now() - 7200000).toISOString(),
+                    assignedAt: new Date(Date.now() - 6000000).toISOString(),
+                    timeline: [
+                        { status: 'pending', timestamp: new Date(Date.now() - 7200000).toISOString(), note: 'Test order created' },
+                        { status: 'assigned', timestamp: new Date(Date.now() - 6000000).toISOString(), note: 'Assigned to test booster' },
+                        { status: 'in_progress', timestamp: new Date(Date.now() - 3600000).toISOString(), note: 'Service started' },
+                        { status: 'evidence_submitted', timestamp: new Date().toISOString(), note: 'Evidence submitted for review' }
+                    ]
+                }
+            ];
+
+            testOrdersData.forEach(order => {
+                testOrders.set(order.id, order);
+            });
+
+            // Update app state with test orders
+            AppState.setState('orders', testOrders);
+        }
+
+        // Test payment hold workflow
+        async function testPaymentHold() {
+            logTest('🔒 Testing payment hold workflow...');
+            
+            try {
+                const order = testOrders.get('test_order_001');
+                if (!order) {
+                    throw new Error('Test order not found');
+                }
+
+                // Assign booster to trigger payment hold
+                order.boosterId = 'user_001';
+                order.status = 'assigned';
+                order.assignedAt = new Date().toISOString();
+                order.timeline.push({
+                    status: 'assigned',
+                    timestamp: order.assignedAt,
+                    note: 'Assigned to test booster for payment hold test'
+                });
+
+                testOrders.set(order.id, order);
+                AppState.setState('orders', testOrders);
+
+                // Wait for payment processing
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                logTest('✅ Payment hold test completed');
+                updateDisplays();
+                
+            } catch (error) {
+                logTest(`❌ Payment hold test failed: ${error.message}`, 'error');
+                console.error('Payment hold test error:', error);
+            }
+        }
+
+        // Test payment release workflow
+        async function testPaymentRelease() {
+            logTest('💰 Testing payment release workflow...');
+            
+            try {
+                const order = testOrders.get('test_order_002');
+                if (!order) {
+                    throw new Error('Test order not found');
+                }
+
+                // Approve order to trigger payment release
+                order.status = 'completed';
+                order.completedAt = new Date().toISOString();
+                order.reviewNotes = 'Test approval - service completed satisfactorily';
+                order.timeline.push({
+                    status: 'completed',
+                    timestamp: order.completedAt,
+                    note: 'Order approved and completed for payment release test'
+                });
+
+                testOrders.set(order.id, order);
+                AppState.setState('orders', testOrders);
+
+                // Wait for payment processing
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                logTest('✅ Payment release test completed');
+                updateDisplays();
+                
+            } catch (error) {
+                logTest(`❌ Payment release test failed: ${error.message}`, 'error');
+                console.error('Payment release test error:', error);
+            }
+        }
+
+        // Test payment reversal workflow
+        async function testPaymentReversal() {
+            logTest('↩️ Testing payment reversal workflow...');
+            
+            try {
+                const order = testOrders.get('test_order_003');
+                if (!order) {
+                    throw new Error('Test order not found');
+                }
+
+                // Reject order to trigger payment reversal
+                order.status = 'rejected';
+                order.rejectedAt = new Date().toISOString();
+                order.reviewNotes = 'Test rejection - service not completed satisfactorily';
+                order.timeline.push({
+                    status: 'rejected',
+                    timestamp: order.rejectedAt,
+                    note: 'Order rejected for payment reversal test'
+                });
+
+                testOrders.set(order.id, order);
+                AppState.setState('orders', testOrders);
+
+                // Wait for payment processing
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                logTest('✅ Payment reversal test completed');
+                updateDisplays();
+                
+            } catch (error) {
+                logTest(`❌ Payment reversal test failed: ${error.message}`, 'error');
+                console.error('Payment reversal test error:', error);
+            }
+        }
+
+        // Run full workflow test
+        async function runFullWorkflowTest() {
+            logTest('🔄 Running full payment workflow test...');
+            
+            try {
+                // Initialize if not already done
+                if (!window.PaymentProcessor || !window.PaymentProcessor.initialized) {
+                    await initializeTest();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } else {
+                    // Just create test orders if not already created
+                    if (testOrders.size === 0) {
+                        createTestOrders();
+                        setupNotificationListener();
+                        updateDisplays();
+                        logTest('✅ Test environment ready');
+                    }
+                }
+
+                // Test payment hold
+                await testPaymentHold();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Test payment release
+                await testPaymentRelease();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Test payment reversal
+                await testPaymentReversal();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Generate statistics
+                const stats = window.PaymentProcessor.getPaymentStatistics();
+                logTest(`📊 Test Statistics:
+                - Total Holds: ${stats.totalHolds}
+                - Active Holds: ${stats.activeHolds}
+                - Released Payments: ${stats.releasedPayments}
+                - Reversed Payments: ${stats.reversedPayments}
+                - Audit Entries: ${stats.auditEntries}`);
+
+                logTest('🎉 Full workflow test completed successfully!', 'success');
+                
+            } catch (error) {
+                logTest(`❌ Full workflow test failed: ${error.message}`, 'error');
+                console.error('Full workflow test error:', error);
+            }
+        }
+
+        // View payment management interface
+        function viewPaymentManagement() {
+            const section = document.getElementById('payment-management-section');
+            const container = document.getElementById('payment-management-container');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                if (window.PaymentManager && window.PaymentManager.renderPaymentInterface) {
+                    window.PaymentManager.renderPaymentInterface(container);
+                    logTest('👁️ Payment management interface displayed');
+                } else {
+                    container.innerHTML = '<p>Payment management interface not available</p>';
+                    logTest('❌ Payment management interface not available');
+                }
+            } else {
+                section.style.display = 'none';
+                logTest('👁️ Payment management interface hidden');
+            }
+        }
+
+        // Clear test data
+        function clearTestData() {
+            testOrders.clear();
+            testResults = [];
+            notificationCount = 0;
+            
+            // Clear payment processor data
+            if (window.PaymentProcessor && window.PaymentProcessor.paymentHolds) {
+                window.PaymentProcessor.paymentHolds.clear();
+            }
+            if (window.PaymentProcessor && window.PaymentProcessor.auditTrail) {
+                window.PaymentProcessor.auditTrail.clear();
+            }
+            
+            // Clear localStorage
+            localStorage.removeItem('payment_audit_trail');
+            
+            // Update displays
+            updateDisplays();
+            document.getElementById('test-status').innerHTML = '';
+            document.getElementById('notifications-container').innerHTML = '';
+            
+            logTest('🧹 Test data cleared');
+        }
+
+        // Set up notification listener
+        function setupNotificationListener() {
+            // Override AppState.addNotification to capture payment notifications
+            const originalAddNotification = AppState.addNotification;
+            AppState.addNotification = function(notification) {
+                // Call original method
+                originalAddNotification.call(this, notification);
+                
+                // Display in test interface
+                displayNotification(notification);
+            };
+        }
+
+        // Display notification in test interface
+        function displayNotification(notification) {
+            const container = document.getElementById('notifications-container');
+            const notificationEl = document.createElement('div');
+            notificationEl.className = `notification ${notification.type}`;
+            notificationEl.innerHTML = `
+                <strong>${notification.title}</strong><br>
+                ${notification.message}
+                <small style="display: block; margin-top: 4px; opacity: 0.7;">
+                    ${new Date().toLocaleTimeString()}
+                </small>
+            `;
+            
+            container.insertBefore(notificationEl, container.firstChild);
+            
+            // Remove after 10 seconds
+            setTimeout(() => {
+                if (notificationEl.parentNode) {
+                    notificationEl.parentNode.removeChild(notificationEl);
+                }
+            }, 10000);
+        }
+
+        // Update all displays
+        function updateDisplays() {
+            updateMockOrdersDisplay();
+            updatePaymentHoldsDisplay();
+            updateAuditTrailDisplay();
+        }
+
+        // Update mock orders display
+        function updateMockOrdersDisplay() {
+            const container = document.getElementById('mock-orders-container');
+            container.innerHTML = '';
+
+            if (testOrders.size === 0) {
+                container.innerHTML = '<p>No test orders created yet. Click "Initialize Test Environment" to create test orders.</p>';
+                return;
+            }
+
+            testOrders.forEach(order => {
+                const orderEl = document.createElement('div');
+                orderEl.className = 'mock-order';
+                orderEl.innerHTML = `
+                    <div class="mock-order-header">
+                        <span class="mock-order-id">#${order.id}</span>
+                        <span class="mock-order-status status-${order.status}">${order.status}</span>
+                    </div>
+                    <div>
+                        <strong>Amount:</strong> ${formatCurrency(order.pricePaid, order.currencyUsed)}<br>
+                        <strong>Booster:</strong> ${order.boosterId || 'Not assigned'}<br>
+                        <strong>Instructions:</strong> ${order.specialInstructions}
+                    </div>
+                    <div class="payment-info">
+                        <strong>Payment Status:</strong> ${getPaymentStatus(order)}
+                    </div>
+                `;
+                container.appendChild(orderEl);
+            });
+        }
+
+        // Update payment holds display
+        function updatePaymentHoldsDisplay() {
+            const container = document.getElementById('payment-holds-container');
+            container.innerHTML = '';
+
+            if (!window.PaymentProcessor || !window.PaymentProcessor.paymentHolds || window.PaymentProcessor.paymentHolds.size === 0) {
+                container.innerHTML = '<p>No active payment holds.</p>';
+                return;
+            }
+
+            const holds = Array.from(window.PaymentProcessor.paymentHolds.values());
+            holds.forEach(hold => {
+                const holdEl = document.createElement('div');
+                holdEl.className = 'mock-order';
+                holdEl.innerHTML = `
+                    <div class="mock-order-header">
+                        <span class="mock-order-id">Hold #${hold.orderId}</span>
+                        <span class="mock-order-status status-${hold.status}">${hold.status}</span>
+                    </div>
+                    <div>
+                        <strong>Amount:</strong> ${formatCurrency(hold.amount, hold.currency)}<br>
+                        <strong>Held At:</strong> ${new Date(hold.heldAt).toLocaleString()}<br>
+                        <strong>Reason:</strong> ${hold.reason}
+                    </div>
+                `;
+                container.appendChild(holdEl);
+            });
+        }
+
+        // Update audit trail display
+        function updateAuditTrailDisplay() {
+            const container = document.getElementById('audit-trail-container');
+            container.innerHTML = '';
+
+            if (!window.PaymentProcessor || !window.PaymentProcessor.auditTrail || window.PaymentProcessor.auditTrail.size === 0) {
+                container.innerHTML = '<p>No audit trail entries.</p>';
+                return;
+            }
+
+            const entries = Array.from(window.PaymentProcessor.auditTrail.values())
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 10); // Show last 10 entries
+
+            entries.forEach(entry => {
+                const entryEl = document.createElement('div');
+                entryEl.className = 'mock-order';
+                entryEl.innerHTML = `
+                    <div class="mock-order-header">
+                        <span class="mock-order-id">${entry.action.toUpperCase()}</span>
+                        <span style="font-size: 12px; color: #666;">${new Date(entry.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div>
+                        <strong>Order:</strong> #${entry.orderId}<br>
+                        <strong>Details:</strong> ${JSON.stringify(entry.details, null, 2)}
+                    </div>
+                `;
+                container.appendChild(entryEl);
+            });
+        }
+
+        // Helper functions
+        function formatCurrency(amount, currency) {
+            const formatters = {
+                'gold': (amt) => `${amt.toLocaleString()} G`,
+                'usd': (amt) => `$${amt.toFixed(2)}`,
+                'toman': (amt) => `${amt.toLocaleString()} ﷼`
+            };
+            const formatter = formatters[currency.toLowerCase()];
+            return formatter ? formatter(amount) : `${amount} ${currency.toUpperCase()}`;
+        }
+
+        function getPaymentStatus(order) {
+            if (!window.PaymentProcessor || !window.PaymentProcessor.paymentHolds) return 'No payment processor';
+            
+            const hold = window.PaymentProcessor.paymentHolds.get(order.id);
+            if (hold) {
+                return `${hold.status.toUpperCase()} - ${formatCurrency(hold.amount, hold.currency)}`;
+            }
+            
+            switch (order.status) {
+                case 'pending':
+                    return 'Payment not held yet';
+                case 'completed':
+                    return 'Payment released';
+                case 'rejected':
+                    return 'Payment reversed';
+                default:
+                    return 'Unknown status';
+            }
+        }
+
+        function logTest(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const statusEl = document.getElementById('test-status');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `
+                <span class="status-indicator status-${type}"></span>
+                [${timestamp}] ${message}
+            `;
+            statusEl.appendChild(logEntry);
+            statusEl.scrollTop = statusEl.scrollHeight;
+            
+            console.log(`[Payment Test] ${message}`);
+        }
+
+        // Auto-initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            logTest('📄 Payment processing test page loaded');
+            logTest('💡 Click "Initialize Test Environment" to begin testing');
+        });
+    </script>
+</body>
+</html>

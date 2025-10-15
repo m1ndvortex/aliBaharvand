@@ -26,16 +26,18 @@ class DashboardApp {
                     { id: 'services', icon: '📝', label: 'My Services' },
                     { id: 'raids', icon: '🏰', label: 'Raid Booking' },
                     { id: 'orders', icon: '📦', label: 'My Orders' },
+                    { id: 'payments', icon: '💳', label: 'Payment Management' },
                     { id: 'earnings', icon: '💰', label: 'Earnings' },
-                    { id: 'wallet', icon: '💳', label: 'Wallet' }
+                    { id: 'wallet', icon: '💵', label: 'Wallet' }
                 ],
                 team: [
                     { id: 'dashboard', icon: '🏠', label: 'Dashboard Home' },
                     { id: 'services', icon: '📝', label: 'My Services' },
                     { id: 'raids', icon: '🏰', label: 'Raid Booking' },
                     { id: 'orders', icon: '📦', label: 'My Orders' },
+                    { id: 'payments', icon: '💳', label: 'Payment Management' },
                     { id: 'earnings', icon: '💰', label: 'Earnings' },
-                    { id: 'wallet', icon: '💳', label: 'Wallet' }
+                    { id: 'wallet', icon: '💵', label: 'Wallet' }
                 ]
             },
             team_advertiser: {
@@ -44,8 +46,9 @@ class DashboardApp {
                     { id: 'services', icon: '📝', label: 'My Services' },
                     { id: 'raids', icon: '🏰', label: 'Raid Booking' },
                     { id: 'orders', icon: '📦', label: 'My Orders' },
+                    { id: 'payments', icon: '💳', label: 'Payment Management' },
                     { id: 'earnings', icon: '💰', label: 'Earnings' },
-                    { id: 'wallet', icon: '💳', label: 'Wallet' }
+                    { id: 'wallet', icon: '💵', label: 'Wallet' }
                 ],
                 team: [
                     { id: 'dashboard', icon: '🏠', label: 'Team Dashboard' },
@@ -54,8 +57,9 @@ class DashboardApp {
                     { id: 'orders', icon: '📦', label: 'Team Orders' },
                     { id: 'team', icon: '🏢', label: 'Team Management' },
                     { id: 'analytics', icon: '📊', label: 'Team Analytics' },
+                    { id: 'payments', icon: '💳', label: 'Payment Management' },
                     { id: 'earnings', icon: '💰', label: 'Team Earnings' },
-                    { id: 'wallet', icon: '💳', label: 'Wallet' }
+                    { id: 'wallet', icon: '💵', label: 'Wallet' }
                 ]
             },
             booster: {
@@ -1309,6 +1313,11 @@ class DashboardApp {
             return this.createWalletView();
         }
         
+        // Handle payment management view with actual implementation
+        if (item === 'payments' && (role === 'advertiser' || role === 'team_advertiser')) {
+            return this.createPaymentManagementView();
+        }
+        
         const placeholder = Utils.DOM.create('div', {
             className: 'placeholder-content'
         });
@@ -2001,6 +2010,53 @@ class DashboardApp {
             const errorCard = Components.createCard({
                 title: '💳 Wallet Management',
                 content: '<p>Wallet system is loading...</p>',
+                className: 'error-card'
+            });
+            container.appendChild(errorCard);
+        }
+
+        return container;
+    }
+
+    /**
+     * Create payment management view
+     */
+    createPaymentManagementView() {
+        const container = Utils.DOM.create('div', {
+            className: 'payment-management-view'
+        });
+
+        // Initialize PaymentManager if not already done
+        if (typeof PaymentManager !== 'undefined' && PaymentManager.renderPaymentInterface) {
+            // PaymentManager will render directly to container
+            setTimeout(async () => {
+                try {
+                    await PaymentManager.init();
+                    PaymentManager.renderPaymentInterface(container);
+                } catch (error) {
+                    console.error('Error initializing PaymentManager:', error);
+                    const errorCard = Components.createCard({
+                        title: '💳 Payment Management',
+                        content: '<p>Error loading payment management system. Please refresh the page.</p>',
+                        className: 'error-card'
+                    });
+                    Utils.DOM.empty(container);
+                    container.appendChild(errorCard);
+                }
+            }, 0);
+            
+            // Return loading placeholder initially
+            const loadingCard = Components.createCard({
+                title: '💳 Payment Management',
+                content: '<div class="loading-spinner"></div><p>Loading payment management system...</p>',
+                className: 'loading-card'
+            });
+            container.appendChild(loadingCard);
+        } else {
+            // Fallback if PaymentManager is not loaded
+            const errorCard = Components.createCard({
+                title: '💳 Payment Management',
+                content: '<p>Payment management system is loading...</p>',
                 className: 'error-card'
             });
             container.appendChild(errorCard);

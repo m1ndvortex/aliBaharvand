@@ -3625,4 +3625,250 @@ if (typeof window !== 'undefined') {
     OrderManager_Instance = new OrderManager();
     window.OrderManager = OrderManager;
     window.OrderManager_Instance = OrderManager_Instance;
-}
+}    /
+**
+     * Approve order and trigger payment release
+     * @param {string} orderId - Order ID
+     */
+    async approveOrder(orderId) {
+        try {
+            const order = this.orders.get(orderId);
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            // Update order status
+            const updatedOrder = {
+                ...order,
+                status: 'completed',
+                completedAt: new Date().toISOString(),
+                reviewNotes: 'Order approved - service completed satisfactorily'
+            };
+
+            // Add completion timeline entry
+            if (!updatedOrder.timeline) {
+                updatedOrder.timeline = [];
+            }
+            updatedOrder.timeline.push({
+                status: 'completed',
+                timestamp: updatedOrder.completedAt,
+                note: 'Order approved and completed'
+            });
+
+            // Update order in state
+            this.orders.set(orderId, updatedOrder);
+            AppState.setState('orders', this.orders);
+
+            // Close modal
+            Components.closeModal();
+
+            // Show success notification
+            AppState.addNotification({
+                type: 'success',
+                title: 'Order Approved',
+                message: `Order #${orderId} has been approved and payment is being processed.`
+            });
+
+            // Re-render orders
+            this.renderOrders();
+
+        } catch (error) {
+            console.error('Error approving order:', error);
+            AppState.addNotification({
+                type: 'error',
+                title: 'Approval Failed',
+                message: 'Failed to approve order. Please try again.'
+            });
+        }
+    }
+
+    /**
+     * Reject order and trigger payment reversal
+     * @param {string} orderId - Order ID
+     */
+    async rejectOrder(orderId) {
+        try {
+            // Show rejection reason modal first
+            const rejectionReason = await this.showRejectionReasonModal();
+            if (!rejectionReason) {
+                return; // User cancelled
+            }
+
+            const order = this.orders.get(orderId);
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            // Update order status
+            const updatedOrder = {
+                ...order,
+                status: 'rejected',
+                rejectedAt: new Date().toISOString(),
+                reviewNotes: rejectionReason
+            };
+
+            // Add rejection timeline entry
+            if (!updatedOrder.timeline) {
+                updatedOrder.timeline = [];
+            }
+            updatedOrder.timeline.push({
+                status: 'rejected',
+                timestamp: updatedOrder.rejectedAt,
+                note: `Order rejected: ${rejectionReason}`
+            });
+
+            // Update order in state
+            this.orders.set(orderId, updatedOrder);
+            AppState.setState('orders', this.orders);
+
+            // Close modal
+            Components.closeModal();
+
+            // Show success notification
+            AppState.addNotification({
+                type: 'warning',
+                title: 'Order Rejected',
+                message: `Order #${orderId} has been rejected and refund is being processed.`
+            });
+
+            // Re-render orders
+            this.renderOrders();
+
+        } catch (error) {
+            console.error('Error rejecting order:', error);
+            AppState.addNotification({
+                type: 'error',
+                title: 'Rejection Failed',
+                message: 'Failed to reject order. Please try again.'
+            });
+        }
+    }
+
+    /**
+     * Show rejection reason modal
+     * @returns {Promise<string|null>} Rejection reason or null if cancelled
+     */
+    showRejectionReasonModal() {
+        return new Promise((resolve) => {
+            const content = Utils.DOM.create('div', {
+                className: 'rejection-reason-modal'
+            });
+
+            const description = Utils.DOM.create('p', {
+                className: 'rejection-description'
+            }, 'Please provide a reason for rejecting this order. This will be sent to the booster and buyer.');
+
+            const textarea = Utils.DOM.create('textarea', {
+                className: 'rejection-textarea',
+                placeholder: 'Enter rejection reason...',
+                rows: 4,
+                required: true
+            });
+
+            content.appendChild(description);
+            content.appendChild(textarea);
+
+            Components.showModal({
+                title: 'Reject Order',
+                content: content,
+                size: 'medium',
+                footer: [
+                    Components.createButton({
+                        text: 'Cancel',
+                        variant: 'secondary',
+                        onClick: () => {
+                            Components.closeModal();
+                            resolve(null);
+                        }
+                    }),
+                    Components.createButton({
+                        text: 'Reject Order',
+                        variant: 'error',
+                        onClick: () => {
+                            const reason = textarea.value.trim();
+                            if (!reason) {
+                                AppState.addNotification({
+                                    type: 'error',
+                                    title: 'Validation Error',
+                                    message: 'Please provide a rejection reason.'
+                                });
+                                return;
+                            }
+                            Components.closeModal();
+                            resolve(reason);
+                        }
+                    })
+                ]
+            });
+
+            // Focus textarea
+            setTimeout(() => textarea.focus(), 100);
+        });
+    }
+
+    /**
+     * Assign booster to order and trigger payment hold
+     * @param {string} orderId - Order ID
+     * @param {string} boosterId - Booster ID
+     */
+    async assignBoosterToOrder(orderId, boosterId) {
+        try {
+            const order = this.orders.get(orderId);
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            // Update order with booster assignment
+            const updatedOrder = {
+                ...order,
+                boosterId: boosterId,
+                status: 'assigned',
+                assignedAt: new Date().toISOString()
+            };
+
+            // Add assignment timeline entry
+            if (!updatedOrder.timeline) {
+                updatedOrder.timeline = [];
+            }
+            updatedOrder.timeline.push({
+                status: 'assigned',
+                timestamp: updatedOrder.assignedAt,
+                note: `Assigned to booster ${this.getBoosterUsername(boosterId)}`
+            });
+
+            // Update order in state
+            this.orders.set(orderId, updatedOrder);
+            AppState.setState('orders', this.orders);
+
+            // Show success notification
+            AppState.addNotification({
+                type: 'success',
+                title: 'Booster Assigned',
+                message: `Order #${orderId} has been assigned and payment is being held securely.`
+            });
+
+            // Re-render orders
+            this.renderOrders();
+
+        } catch (error) {
+            console.error('Error assigning booster:', error);
+            AppState.addNotification({
+                type: 'error',
+                title: 'Assignment Failed',
+                message: 'Failed to assign booster. Please try again.'
+            });
+        }
+    }
+
+    /**
+     * Get booster username by ID
+     * @param {string} boosterId - Booster ID
+     * @returns {string} Booster username
+     */
+    getBoosterUsername(boosterId) {
+        if (typeof MockData !== 'undefined' && MockData.users) {
+            const booster = MockData.users.find(u => u.id === boosterId);
+            return booster ? booster.discordUsername : 'Unknown Booster';
+        }
+        return 'Unknown Booster';
+    }
